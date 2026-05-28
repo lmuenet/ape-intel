@@ -11,6 +11,11 @@ export default defineConfig({
   ],
   test: {
     environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        url: "https://de.scalable.capital/",
+      },
+    },
     globals: true,
   },
 });
