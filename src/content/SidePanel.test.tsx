@@ -72,9 +72,15 @@ describe("<SidePanel />", () => {
   });
 
   it("renders Tradestie comments + sentiment label", () => {
-    const { getByText, getAllByText } = render(<SidePanel {...defaults} tradestie={tradestie({ comments: 132, sentimentLabel: "Bullish" })} />);
+    const { getByText } = render(
+      <SidePanel
+        {...defaults}
+        stocktwits={null}
+        tradestie={tradestie({ comments: 132, sentimentLabel: "Bullish" })}
+      />,
+    );
     expect(getByText(/132/)).toBeTruthy();
-    expect(getAllByText(/Bullish/i).length).toBeGreaterThan(0);
+    expect(getByText(/Bullish/i)).toBeTruthy();
   });
 
   it("Tradestie shows no-data placeholder when null", () => {
