@@ -3,7 +3,7 @@ import { defineManifest } from "@crxjs/vite-plugin";
 export default defineManifest({
   manifest_version: 3,
   name: "Ape Intel",
-  version: "0.0.3",
+  version: "0.0.4",
   description:
     "Community sentiment + news panel for Scalable Capital security pages.",
   browser_specific_settings: {
@@ -17,6 +17,9 @@ export default defineManifest({
   },
   permissions: ["storage"],
   host_permissions: ["https://api.openfigi.com/*"],
+  background: {
+    scripts: ["src/background/index.ts"],
+  },
   content_scripts: [
     {
       matches: ["https://de.scalable.capital/broker/security*"],
