@@ -5,28 +5,24 @@ import { observeIsin } from "../lib/url-observer";
 import { browserStorageKvStore } from "../lib/kv-store";
 import { createTickerCache } from "../lib/ticker-cache";
 import type { ApewisdomEntry } from "../lib/apewisdom";
+import type { StockTwitsEntry } from "../lib/stocktwits";
+import type { TradestieEntry } from "../lib/tradestie";
 import type {
   ApewisdomLookupMessage,
+  StockTwitsLookupMessage,
   TickerLookupMessage,
+  TradestieLookupMessage,
 } from "../background/messages";
 
 const HOST_ID = "ape-intel-host";
 
-async function lookupTickerViaBackground(isin: string): Promise<string | null> {
-  const message: TickerLookupMessage = { type: "ticker:lookup", isin };
-  return (await browser.runtime.sendMessage(message)) as string | null;
-}
-
-async function lookupApewisdomViaBackground(
-  ticker: string,
-): Promise<ApewisdomEntry | null> {
-  const message: ApewisdomLookupMessage = { type: "apewisdom:lookup", ticker };
-  return (await browser.runtime.sendMessage(message)) as ApewisdomEntry | null;
+async function send<T>(message: unknown): Promise<T> {
+  return (await browser.runtime.sendMessage(message)) as T;
 }
 
 const tickerCache = createTickerCache(
   browserStorageKvStore(browser.storage.local),
-  lookupTickerViaBackground,
+  (isin) => send<string | null>({ type: "ticker:lookup", isin } satisfies TickerLookupMessage),
 );
 
 function ensureHost(): HTMLElement {
@@ -47,6 +43,8 @@ let isPanelOpen = false;
 let currentIsin: string | null = null;
 let currentTicker: string | null | undefined = undefined;
 let currentApewisdom: ApewisdomEntry | null | undefined = undefined;
+let currentTradestie: TradestieEntry | null | undefined = undefined;
+let currentStockTwits: StockTwitsEntry | null | undefined = undefined;
 
 function paint(): void {
   if (currentIsin === null) {
@@ -58,19 +56,15 @@ function paint(): void {
       <Badge
         isin={currentIsin}
         ticker={currentTicker}
-        onClick={() => {
-          isPanelOpen = !isPanelOpen;
-          paint();
-        }}
+        onClick={() => { isPanelOpen = !isPanelOpen; paint(); }}
       />
       <SidePanel
         isOpen={isPanelOpen}
         ticker={currentTicker}
         apewisdom={currentApewisdom}
-        onClose={() => {
-          isPanelOpen = false;
-          paint();
-        }}
+        tradestie={currentTradestie}
+        stocktwits={currentStockTwits}
+        onClose={() => { isPanelOpen = false; paint(); }}
       />
     </>,
     ensureHost(),
@@ -79,46 +73,56 @@ function paint(): void {
 
 let generation = 0;
 
+function dispatchSentimentLookups(ticker: string, gen: number): void {
+  send<ApewisdomEntry | null>({ type: "apewisdom:lookup", ticker } satisfies ApewisdomLookupMessage).then(
+    (entry) => { if (gen === generation) { currentApewisdom = entry; paint(); } },
+    (e) => { if (gen === generation) { console.warn("[ape-intel] apewisdom lookup failed", e); currentApewisdom = null; paint(); } },
+  );
+  send<TradestieEntry | null>({ type: "tradestie:lookup", ticker } satisfies TradestieLookupMessage).then(
+    (entry) => { if (gen === generation) { currentTradestie = entry; paint(); } },
+    (e) => { if (gen === generation) { console.warn("[ape-intel] tradestie lookup failed", e); currentTradestie = null; paint(); } },
+  );
+  send<StockTwitsEntry | null>({ type: "stocktwits:lookup", ticker } satisfies StockTwitsLookupMessage).then(
+    (entry) => { if (gen === generation) { currentStockTwits = entry; paint(); } },
+    (e) => { if (gen === generation) { console.warn("[ape-intel] stocktwits lookup failed", e); currentStockTwits = null; paint(); } },
+  );
+}
+
 observeIsin(window, (isin) => {
   generation += 1;
-  const requestGeneration = generation;
+  const gen = generation;
 
   currentIsin = isin;
   currentTicker = undefined;
   currentApewisdom = undefined;
+  currentTradestie = undefined;
+  currentStockTwits = undefined;
 
-  if (!isin) {
-    paint();
-    return;
-  }
-
+  if (!isin) { paint(); return; }
   paint();
 
   tickerCache.get(isin).then(
     (ticker) => {
-      if (requestGeneration !== generation) return;
+      if (gen !== generation) return;
       currentTicker = ticker;
       paint();
-
-      if (!ticker) return;
-      lookupApewisdomViaBackground(ticker).then(
-        (entry) => {
-          if (requestGeneration !== generation) return;
-          currentApewisdom = entry;
-          paint();
-        },
-        (error) => {
-          if (requestGeneration !== generation) return;
-          console.warn("[ape-intel] apewisdom lookup failed", error);
-          currentApewisdom = null;
-          paint();
-        },
-      );
+      if (ticker) dispatchSentimentLookups(ticker, gen);
+      else {
+        // ticker = null → mark all three sentiment slots as null so the panel
+        // shows the no-data branches instead of a forever loading state
+        currentApewisdom = null;
+        currentTradestie = null;
+        currentStockTwits = null;
+        paint();
+      }
     },
-    (error) => {
-      if (requestGeneration !== generation) return;
-      console.warn("[ape-intel] ticker lookup failed", error);
+    (e) => {
+      if (gen !== generation) return;
+      console.warn("[ape-intel] ticker lookup failed", e);
       currentTicker = null;
+      currentApewisdom = null;
+      currentTradestie = null;
+      currentStockTwits = null;
       paint();
     },
   );
