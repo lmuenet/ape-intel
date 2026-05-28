@@ -4,23 +4,23 @@ A Firefox browser extension that enriches [Scalable Capital](https://de.scalable
 
 ## What it does
 
-When you visit a stock, ETF, or other asset on Scalable Capital, the extension injects an analysis panel showing:
+When you visit a stock on Scalable Capital, the extension injects an always-visible Badge plus an on-demand Side Panel showing:
 
-- **News** – aggregated from free financial news APIs (Finnhub, MarketAux, Alpha Vantage)
-- **Reddit Sentiment** – scraped from investment-focused subreddits (r/wallstreetbets, r/wallstreetbetsGER, r/shortsqueeze, r/stocks, r/investing, r/ValueInvesting, r/Superstonk, r/options, r/StockMarket, r/SecurityAnalysis)
-- **Community Score** – bullish/bearish ratio from mentions and comment sentiment
-- **StockTwits Stream** – real-time trader messages
+- **Barometer / Buzz / Trend** – confidence-weighted community sentiment fused from Apewisdom, Tradestie and StockTwits (see `docs/adr/0001-…`)
+- **News** – Top 5 of the last 7 days from Finnhub (Alpha Vantage as emergency fallback; English only in v1)
+- **Earnings Date** – next scheduled earnings with consensus EPS estimate
+- **AI Analysis (BYOK)** – optional Anthropic/OpenAI synthesis of a Markdown Briefing; the Briefing is also exportable to any external LLM
 
 ## Status
 
-> Planning phase — see `docs/` for design specs.
+> Early development — see `docs/PRD.md` for the product spec and `docs/adr/` for binding architecture decisions.
 
 ## Tech Stack
 
 - Firefox WebExtension (Manifest V3)
-- Vanilla JS / TypeScript (TBD in planning)
-- Reddit JSON API (no auth required for public subreddits)
-- Finnhub / MarketAux / Alpha Vantage free tier
+- TypeScript + Vite + `@crxjs/vite-plugin` + Preact
+- Vitest for unit tests
+- Data sources: Apewisdom, Tradestie, StockTwits, OpenFIGI, Finnhub, Alpha Vantage (fallback)
 
 ## Development
 
