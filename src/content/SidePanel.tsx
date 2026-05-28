@@ -1,13 +1,12 @@
 import "./sidePanel.css";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
-import type { TradestieEntry } from "../lib/tradestie";
+import { ExternalLinksBar } from "./ExternalLinksBar";
 
 export interface SidePanelProps {
   isOpen: boolean;
   ticker: string | null | undefined;
   apewisdom: ApewisdomEntry | null | undefined;
-  tradestie: TradestieEntry | null | undefined;
   stocktwits: StockTwitsEntry | null | undefined;
   onClose: () => void;
 }
@@ -70,24 +69,8 @@ function ApewisdomSection({ entry }: { entry: ApewisdomEntry | null | undefined 
   );
 }
 
-function TradestieSection({ entry }: { entry: TradestieEntry | null | undefined }) {
-  return (
-    <section class="ape-intel-panel__source">
-      <h3 class="ape-intel-panel__section-title">Tradestie (r/wallstreetbets)</h3>
-      {entry === undefined ? <Placeholder>Loading…</Placeholder>
-      : entry === null ? <Placeholder>No Tradestie data — ticker not in today's WSB snapshot.</Placeholder>
-      : (
-        <dl class="ape-intel-panel__stats ape-intel-panel__stats--two">
-          <div><dt>Comments</dt><dd>{entry.comments}</dd></div>
-          <div><dt>Sentiment</dt><dd>{entry.sentimentLabel}</dd></div>
-        </dl>
-      )}
-    </section>
-  );
-}
-
 export function SidePanel({
-  isOpen, ticker, apewisdom, tradestie, stocktwits, onClose,
+  isOpen, ticker, apewisdom, stocktwits, onClose,
 }: SidePanelProps) {
   if (!isOpen) return null;
 
@@ -99,7 +82,7 @@ export function SidePanel({
       </header>
       <StockTwitsSection entry={stocktwits} />
       <ApewisdomSection entry={apewisdom} />
-      <TradestieSection entry={tradestie} />
+      <ExternalLinksBar ticker={ticker} />
     </aside>
   );
 }

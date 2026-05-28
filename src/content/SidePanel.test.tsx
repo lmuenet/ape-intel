@@ -2,16 +2,12 @@ import { render, cleanup, fireEvent } from "@testing-library/preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
-import type { TradestieEntry } from "../lib/tradestie";
 import { SidePanel } from "./SidePanel";
 
 afterEach(cleanup);
 
 const apewisdom = (o: Partial<ApewisdomEntry> = {}): ApewisdomEntry => ({
   rank: 5, mentions: 247, mentions24hAgo: 180, ...o,
-});
-const tradestie = (o: Partial<TradestieEntry> = {}): TradestieEntry => ({
-  comments: 132, sentimentLabel: "Bullish", sentimentScore: 0.71, ...o,
 });
 const stocktwits = (o: Partial<StockTwitsEntry> = {}): StockTwitsEntry => ({
   bullish: 18, bearish: 4, totalMessages: 30, ...o,
@@ -21,7 +17,6 @@ const defaults = {
   isOpen: true,
   ticker: "AAPL" as string | null | undefined,
   apewisdom: apewisdom() as ApewisdomEntry | null | undefined,
-  tradestie: tradestie() as TradestieEntry | null | undefined,
   stocktwits: stocktwits() as StockTwitsEntry | null | undefined,
   onClose: () => {},
 };
@@ -39,7 +34,7 @@ describe("<SidePanel />", () => {
 
   it("shows a resolving message when ticker is undefined", () => {
     const { getByText } = render(
-      <SidePanel {...defaults} ticker={undefined} apewisdom={undefined} tradestie={undefined} stocktwits={undefined} />,
+      <SidePanel {...defaults} ticker={undefined} apewisdom={undefined} stocktwits={undefined} />,
     );
     expect(getByText(/Resolving/i)).toBeTruthy();
   });
@@ -49,7 +44,6 @@ describe("<SidePanel />", () => {
     expect(container.querySelector(".ape-intel-panel__source--stocktwits")).toBeTruthy();
     expect(getByText(/18/)).toBeTruthy();
     expect(getByText(/4\b/)).toBeTruthy();
-    // 18 / (18+4) = 82%
     expect(getByText(/82%/)).toBeTruthy();
   });
 
@@ -68,23 +62,6 @@ describe("<SidePanel />", () => {
   it("Apewisdom shows no-data placeholder when null", () => {
     const { getByText } = render(<SidePanel {...defaults} apewisdom={null} />);
     expect(getByText(/No Apewisdom data/i)).toBeTruthy();
-  });
-
-  it("renders Tradestie comments + sentiment label", () => {
-    const { getByText } = render(
-      <SidePanel
-        {...defaults}
-        stocktwits={null}
-        tradestie={tradestie({ comments: 132, sentimentLabel: "Bullish" })}
-      />,
-    );
-    expect(getByText(/132/)).toBeTruthy();
-    expect(getByText(/Bullish/i)).toBeTruthy();
-  });
-
-  it("Tradestie shows no-data placeholder when null", () => {
-    const { getByText } = render(<SidePanel {...defaults} tradestie={null} />);
-    expect(getByText(/No Tradestie data/i)).toBeTruthy();
   });
 
   it("invokes onClose when close button clicked", () => {

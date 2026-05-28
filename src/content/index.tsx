@@ -6,12 +6,10 @@ import { browserStorageKvStore } from "../lib/kv-store";
 import { createTickerCache } from "../lib/ticker-cache";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
-import type { TradestieEntry } from "../lib/tradestie";
 import type {
   ApewisdomLookupMessage,
   StockTwitsLookupMessage,
   TickerLookupMessage,
-  TradestieLookupMessage,
 } from "../background/messages";
 
 const HOST_ID = "ape-intel-host";
@@ -43,7 +41,6 @@ let isPanelOpen = false;
 let currentIsin: string | null = null;
 let currentTicker: string | null | undefined = undefined;
 let currentApewisdom: ApewisdomEntry | null | undefined = undefined;
-let currentTradestie: TradestieEntry | null | undefined = undefined;
 let currentStockTwits: StockTwitsEntry | null | undefined = undefined;
 
 function paint(): void {
@@ -62,7 +59,6 @@ function paint(): void {
         isOpen={isPanelOpen}
         ticker={currentTicker}
         apewisdom={currentApewisdom}
-        tradestie={currentTradestie}
         stocktwits={currentStockTwits}
         onClose={() => { isPanelOpen = false; paint(); }}
       />
@@ -78,10 +74,6 @@ function dispatchSentimentLookups(ticker: string, gen: number): void {
     (entry) => { if (gen === generation) { currentApewisdom = entry; paint(); } },
     (e) => { if (gen === generation) { console.warn("[ape-intel] apewisdom lookup failed", e); currentApewisdom = null; paint(); } },
   );
-  send<TradestieEntry | null>({ type: "tradestie:lookup", ticker } satisfies TradestieLookupMessage).then(
-    (entry) => { if (gen === generation) { currentTradestie = entry; paint(); } },
-    (e) => { if (gen === generation) { console.warn("[ape-intel] tradestie lookup failed", e); currentTradestie = null; paint(); } },
-  );
   send<StockTwitsEntry | null>({ type: "stocktwits:lookup", ticker } satisfies StockTwitsLookupMessage).then(
     (entry) => { if (gen === generation) { currentStockTwits = entry; paint(); } },
     (e) => { if (gen === generation) { console.warn("[ape-intel] stocktwits lookup failed", e); currentStockTwits = null; paint(); } },
@@ -95,7 +87,6 @@ observeIsin(window, (isin) => {
   currentIsin = isin;
   currentTicker = undefined;
   currentApewisdom = undefined;
-  currentTradestie = undefined;
   currentStockTwits = undefined;
 
   if (!isin) { paint(); return; }
@@ -108,10 +99,7 @@ observeIsin(window, (isin) => {
       paint();
       if (ticker) dispatchSentimentLookups(ticker, gen);
       else {
-        // ticker = null → mark all three sentiment slots as null so the panel
-        // shows the no-data branches instead of a forever loading state
         currentApewisdom = null;
-        currentTradestie = null;
         currentStockTwits = null;
         paint();
       }
@@ -121,7 +109,6 @@ observeIsin(window, (isin) => {
       console.warn("[ape-intel] ticker lookup failed", e);
       currentTicker = null;
       currentApewisdom = null;
-      currentTradestie = null;
       currentStockTwits = null;
       paint();
     },

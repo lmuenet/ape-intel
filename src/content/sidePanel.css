@@ -72,3 +72,32 @@
 .ape-intel-panel__stats dt { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.04em; }
 .ape-intel-panel__stats dd { margin: 0; font: 600 15px/1.2 system-ui, sans-serif; }
 .ape-intel-panel__trend { font-weight: 400; opacity: 0.7; margin-left: 2px; }
+
+.ape-intel-links {
+  border-top: 1px solid #2a2a2a;
+  padding-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ape-intel-links__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #1a1a1a;
+  color: inherit;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+.ape-intel-links__item:hover {
+  background: #232323;
+  color: #4ade80;
+}
+.ape-intel-links__emoji {
+  font-size: 14px;
+  line-height: 1;
+}
