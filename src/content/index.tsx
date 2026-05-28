@@ -3,13 +3,18 @@ import { Badge } from "./Badge";
 import { observeIsin } from "../lib/url-observer";
 import { browserStorageKvStore } from "../lib/kv-store";
 import { createTickerCache } from "../lib/ticker-cache";
-import { fetchTickerFromOpenFigi } from "../lib/openfigi";
+import type { TickerLookupMessage } from "../background/messages";
 
 const HOST_ID = "ape-intel-host";
 
+async function lookupTickerViaBackground(isin: string): Promise<string | null> {
+  const message: TickerLookupMessage = { type: "ticker:lookup", isin };
+  return (await browser.runtime.sendMessage(message)) as string | null;
+}
+
 const tickerCache = createTickerCache(
   browserStorageKvStore(browser.storage.local),
-  (isin) => fetchTickerFromOpenFigi(isin, fetch),
+  lookupTickerViaBackground,
 );
 
 function ensureHost(): HTMLElement {
