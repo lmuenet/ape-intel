@@ -10,9 +10,18 @@
   background: #111;
   color: #f3f3f3;
   font: 12px/1.4 system-ui, sans-serif;
+  border: none;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-  pointer-events: auto;
+  cursor: pointer;
+  text-align: left;
+}
+.ape-intel-badge:hover {
+  background: #1a1a1a;
+}
+.ape-intel-badge:focus-visible {
+  outline: 2px solid #4ade80;
+  outline-offset: 2px;
 }
 .ape-intel-badge__brand {
   font-weight: 600;

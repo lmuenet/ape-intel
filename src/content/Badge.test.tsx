@@ -1,11 +1,11 @@
-import { render, cleanup } from "@testing-library/preact";
-import { afterEach, describe, expect, it } from "vitest";
+import { render, cleanup, fireEvent } from "@testing-library/preact";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Badge } from "./Badge";
 
 afterEach(cleanup);
 
 describe("<Badge />", () => {
-  it("renders the ISIN it was given", () => {
+  it("renders the ISIN", () => {
     const { getByText } = render(<Badge isin="US0378331005" />);
     expect(getByText("US0378331005")).toBeTruthy();
   });
@@ -25,8 +25,18 @@ describe("<Badge />", () => {
     expect(container.querySelector(".ape-intel-badge__ticker")).toBeNull();
   });
 
-  it("omits the ticker element when ticker is undefined", () => {
+  it("renders as a button", () => {
     const { container } = render(<Badge isin="US0378331005" />);
-    expect(container.querySelector(".ape-intel-badge__ticker")).toBeNull();
+    expect(container.querySelector("button.ape-intel-badge")).toBeTruthy();
+  });
+
+  it("invokes onClick when clicked", () => {
+    const onClick = vi.fn();
+    const { container } = render(
+      <Badge isin="US0378331005" onClick={onClick} />,
+    );
+    const button = container.querySelector("button.ape-intel-badge")!;
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 });
