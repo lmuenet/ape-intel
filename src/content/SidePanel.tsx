@@ -9,6 +9,7 @@ export interface SidePanelProps {
   apewisdom: ApewisdomEntry | null | undefined;
   stocktwits: StockTwitsEntry | null | undefined;
   onClose: () => void;
+  onTradingViewClick: () => void;
 }
 
 function trendArrow(now: number, prev: number): string {
@@ -70,7 +71,7 @@ function ApewisdomSection({ entry }: { entry: ApewisdomEntry | null | undefined 
 }
 
 export function SidePanel({
-  isOpen, ticker, apewisdom, stocktwits, onClose,
+  isOpen, ticker, apewisdom, stocktwits, onClose, onTradingViewClick,
 }: SidePanelProps) {
   if (!isOpen) return null;
 
@@ -82,7 +83,7 @@ export function SidePanel({
       </header>
       <StockTwitsSection entry={stocktwits} />
       <ApewisdomSection entry={apewisdom} />
-      <ExternalLinksBar ticker={ticker} />
+      <ExternalLinksBar ticker={ticker} onTradingViewClick={onTradingViewClick} />
     </aside>
   );
 }

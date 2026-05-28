@@ -1,5 +1,6 @@
 import { render } from "preact";
 import { Badge } from "./Badge";
+import { ChartOverlay } from "./ChartOverlay";
 import { SidePanel } from "./SidePanel";
 import { observeIsin } from "../lib/url-observer";
 import { browserStorageKvStore } from "../lib/kv-store";
@@ -38,6 +39,7 @@ function unmount(): void {
 }
 
 let isPanelOpen = false;
+let isChartOpen = false;
 let currentIsin: string | null = null;
 let currentTicker: string | null | undefined = undefined;
 let currentApewisdom: ApewisdomEntry | null | undefined = undefined;
@@ -61,6 +63,12 @@ function paint(): void {
         apewisdom={currentApewisdom}
         stocktwits={currentStockTwits}
         onClose={() => { isPanelOpen = false; paint(); }}
+        onTradingViewClick={() => { isChartOpen = true; paint(); }}
+      />
+      <ChartOverlay
+        isOpen={isChartOpen}
+        ticker={currentTicker}
+        onClose={() => { isChartOpen = false; paint(); }}
       />
     </>,
     ensureHost(),
@@ -88,6 +96,7 @@ observeIsin(window, (isin) => {
   currentTicker = undefined;
   currentApewisdom = undefined;
   currentStockTwits = undefined;
+  isChartOpen = false; // close chart on navigation
 
   if (!isin) { paint(); return; }
   paint();

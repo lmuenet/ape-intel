@@ -19,6 +19,7 @@ const defaults = {
   apewisdom: apewisdom() as ApewisdomEntry | null | undefined,
   stocktwits: stocktwits() as StockTwitsEntry | null | undefined,
   onClose: () => {},
+  onTradingViewClick: () => {},
 };
 
 describe("<SidePanel />", () => {
