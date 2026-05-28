@@ -2,28 +2,17 @@ import { parseIsinFromUrl } from "./isin";
 
 export type IsinListener = (isin: string | null) => void;
 
-const LOCATION_CHANGE_EVENT = "ape-intel:locationchange";
+const DEFAULT_INTERVAL_MS = 250;
 
-export function observeIsin(win: Window, onChange: IsinListener): () => void {
+export function observeIsin(
+  win: Window,
+  onChange: IsinListener,
+  intervalMs: number = DEFAULT_INTERVAL_MS,
+): () => void {
   let lastUrl = win.location.href;
   let lastIsin = parseIsinFromUrl(lastUrl);
 
-  const originalPush = win.history.pushState;
-  const originalReplace = win.history.replaceState;
-
-  const wrap = (
-    fn: typeof originalPush,
-  ): typeof originalPush =>
-    function patched(this: History, ...args) {
-      const result = fn.apply(this, args);
-      win.dispatchEvent(new Event(LOCATION_CHANGE_EVENT));
-      return result;
-    } as typeof originalPush;
-
-  win.history.pushState = wrap(originalPush);
-  win.history.replaceState = wrap(originalReplace);
-
-  const handler = (): void => {
+  const check = (): void => {
     const url = win.location.href;
     if (url === lastUrl) return;
     lastUrl = url;
@@ -33,15 +22,14 @@ export function observeIsin(win: Window, onChange: IsinListener): () => void {
     onChange(isin);
   };
 
-  win.addEventListener("popstate", handler);
-  win.addEventListener(LOCATION_CHANGE_EVENT, handler);
+  const popstateHandler = (): void => check();
+  win.addEventListener("popstate", popstateHandler);
+  const intervalId = win.setInterval(check, intervalMs);
 
   onChange(lastIsin);
 
   return () => {
-    win.history.pushState = originalPush;
-    win.history.replaceState = originalReplace;
-    win.removeEventListener("popstate", handler);
-    win.removeEventListener(LOCATION_CHANGE_EVENT, handler);
+    win.clearInterval(intervalId);
+    win.removeEventListener("popstate", popstateHandler);
   };
 }
