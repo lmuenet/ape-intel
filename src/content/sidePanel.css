@@ -1,0 +1,79 @@
+.ape-intel-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 92px;
+  z-index: 2147483646;
+  width: 360px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: #111;
+  color: #f3f3f3;
+  font: 13px/1.5 system-ui, sans-serif;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ape-intel-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ape-intel-panel__title {
+  font: 600 16px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  margin: 0;
+}
+.ape-intel-panel__close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+}
+.ape-intel-panel__close:hover {
+  color: #4ade80;
+}
+.ape-intel-panel__section {
+  border-top: 1px solid #2a2a2a;
+  padding-top: 12px;
+}
+.ape-intel-panel__section-title {
+  font: 600 11px/1 system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin: 0 0 8px;
+}
+.ape-intel-panel__placeholder {
+  margin: 0;
+  opacity: 0.8;
+}
+.ape-intel-panel__stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.ape-intel-panel__stats > div {
+  display: flex;
+  flex-direction: column;
+}
+.ape-intel-panel__stats dt {
+  font-size: 11px;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ape-intel-panel__stats dd {
+  margin: 0;
+  font: 600 15px/1.2 system-ui, sans-serif;
+}
+.ape-intel-panel__trend {
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 2px;
+}
