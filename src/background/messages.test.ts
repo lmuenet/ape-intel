@@ -1,68 +1,66 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ApewisdomEntry } from "../lib/apewisdom";
-import { handleMessage } from "./messages";
+import type { StockTwitsEntry } from "../lib/stocktwits";
+import type { TradestieEntry } from "../lib/tradestie";
+import { handleMessage, type MessageHandlers } from "./messages";
 
-const noopApewisdom = vi.fn();
-const noopTicker = vi.fn();
+const handlers = (
+  overrides: Partial<MessageHandlers> = {},
+): MessageHandlers => ({
+  fetchTicker: vi.fn(),
+  lookupApewisdom: vi.fn(),
+  lookupTradestie: vi.fn(),
+  lookupStockTwits: vi.fn(),
+  ...overrides,
+});
 
 describe("handleMessage", () => {
-  it("delegates ticker:lookup to fetchTicker", async () => {
+  it("routes ticker:lookup", async () => {
     const fetchTicker = vi.fn().mockResolvedValue("AAPL");
-    const result = handleMessage(
-      { type: "ticker:lookup", isin: "US0378331005" },
-      fetchTicker,
-      noopApewisdom,
-    );
-    expect(result).toBeInstanceOf(Promise);
-    await expect(result).resolves.toBe("AAPL");
+    const h = handlers({ fetchTicker });
+    await expect(
+      handleMessage({ type: "ticker:lookup", isin: "US0378331005" }, h),
+    ).resolves.toBe("AAPL");
     expect(fetchTicker).toHaveBeenCalledWith("US0378331005");
   });
 
-  it("delegates apewisdom:lookup to lookupApewisdom", async () => {
-    const entry: ApewisdomEntry = {
-      rank: 5,
-      mentions: 100,
-      mentions24hAgo: 80,
-      sentimentScore: 60,
-    };
+  it("routes apewisdom:lookup", async () => {
+    const entry: ApewisdomEntry = { rank: 1, mentions: 1, mentions24hAgo: 1, sentimentScore: 1 };
     const lookupApewisdom = vi.fn().mockResolvedValue(entry);
-    const result = handleMessage(
-      { type: "apewisdom:lookup", ticker: "AAPL" },
-      noopTicker,
-      lookupApewisdom,
-    );
-    expect(result).toBeInstanceOf(Promise);
-    await expect(result).resolves.toBe(entry);
-    expect(lookupApewisdom).toHaveBeenCalledWith("AAPL");
+    await expect(
+      handleMessage({ type: "apewisdom:lookup", ticker: "AAPL" }, handlers({ lookupApewisdom })),
+    ).resolves.toBe(entry);
   });
 
-  it("propagates fetcher rejections (ticker)", async () => {
-    const fetchTicker = vi.fn().mockRejectedValue(new Error("boom"));
+  it("routes tradestie:lookup", async () => {
+    const entry: TradestieEntry = { comments: 50, sentimentLabel: "Bullish", sentimentScore: 0.7 };
+    const lookupTradestie = vi.fn().mockResolvedValue(entry);
     await expect(
-      handleMessage(
-        { type: "ticker:lookup", isin: "US0378331005" },
-        fetchTicker,
-        noopApewisdom,
-      ),
-    ).rejects.toThrow("boom");
+      handleMessage({ type: "tradestie:lookup", ticker: "AAPL" }, handlers({ lookupTradestie })),
+    ).resolves.toBe(entry);
   });
 
-  it("propagates fetcher rejections (apewisdom)", async () => {
-    const lookupApewisdom = vi.fn().mockRejectedValue(new Error("boom"));
+  it("routes stocktwits:lookup", async () => {
+    const entry: StockTwitsEntry = { bullish: 5, bearish: 2, totalMessages: 7 };
+    const lookupStockTwits = vi.fn().mockResolvedValue(entry);
     await expect(
-      handleMessage(
-        { type: "apewisdom:lookup", ticker: "AAPL" },
-        noopTicker,
-        lookupApewisdom,
-      ),
+      handleMessage({ type: "stocktwits:lookup", ticker: "AAPL" }, handlers({ lookupStockTwits })),
+    ).resolves.toBe(entry);
+  });
+
+  it("propagates rejections from any branch", async () => {
+    const lookupStockTwits = vi.fn().mockRejectedValue(new Error("boom"));
+    await expect(
+      handleMessage({ type: "stocktwits:lookup", ticker: "AAPL" }, handlers({ lookupStockTwits })),
     ).rejects.toThrow("boom");
   });
 
   it("returns undefined for unknown / malformed messages", () => {
-    expect(handleMessage({ type: "other" }, noopTicker, noopApewisdom)).toBeUndefined();
-    expect(handleMessage(null, noopTicker, noopApewisdom)).toBeUndefined();
-    expect(handleMessage("x", noopTicker, noopApewisdom)).toBeUndefined();
-    expect(handleMessage({ type: "ticker:lookup" }, noopTicker, noopApewisdom)).toBeUndefined();
-    expect(handleMessage({ type: "apewisdom:lookup", ticker: 5 }, noopTicker, noopApewisdom)).toBeUndefined();
+    const h = handlers();
+    expect(handleMessage(null, h)).toBeUndefined();
+    expect(handleMessage("x", h)).toBeUndefined();
+    expect(handleMessage({ type: "other" }, h)).toBeUndefined();
+    expect(handleMessage({ type: "ticker:lookup" }, h)).toBeUndefined();
+    expect(handleMessage({ type: "tradestie:lookup", ticker: 5 }, h)).toBeUndefined();
   });
 });

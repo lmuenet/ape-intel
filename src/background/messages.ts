@@ -1,44 +1,57 @@
 import type { ApewisdomEntry } from "../lib/apewisdom";
+import type { StockTwitsEntry } from "../lib/stocktwits";
+import type { TradestieEntry } from "../lib/tradestie";
 import type { TickerFetcher } from "../lib/ticker-cache";
 
-export interface TickerLookupMessage {
-  type: "ticker:lookup";
-  isin: string;
+export interface TickerLookupMessage { type: "ticker:lookup"; isin: string }
+export interface ApewisdomLookupMessage { type: "apewisdom:lookup"; ticker: string }
+export interface TradestieLookupMessage { type: "tradestie:lookup"; ticker: string }
+export interface StockTwitsLookupMessage { type: "stocktwits:lookup"; ticker: string }
+
+export type ApewisdomLookup = (ticker: string) => Promise<ApewisdomEntry | null>;
+export type TradestieLookup = (ticker: string) => Promise<TradestieEntry | null>;
+export type StockTwitsLookup = (ticker: string) => Promise<StockTwitsEntry | null>;
+
+export interface MessageHandlers {
+  fetchTicker: TickerFetcher;
+  lookupApewisdom: ApewisdomLookup;
+  lookupTradestie: TradestieLookup;
+  lookupStockTwits: StockTwitsLookup;
 }
 
-export interface ApewisdomLookupMessage {
-  type: "apewisdom:lookup";
-  ticker: string;
-}
+type HasTicker = { type: string; ticker: string };
 
-export type ApewisdomLookup = (
-  ticker: string,
-) => Promise<ApewisdomEntry | null>;
-
-function isTickerLookup(value: unknown): value is TickerLookupMessage {
+function isTickerLookup(v: unknown): v is TickerLookupMessage {
   return (
-    typeof value === "object" &&
-    value !== null &&
-    (value as { type?: unknown }).type === "ticker:lookup" &&
-    typeof (value as { isin?: unknown }).isin === "string"
+    typeof v === "object" && v !== null &&
+    (v as { type?: unknown }).type === "ticker:lookup" &&
+    typeof (v as { isin?: unknown }).isin === "string"
   );
 }
 
-function isApewisdomLookup(value: unknown): value is ApewisdomLookupMessage {
+function isTypedTickerMessage<T extends string>(
+  v: unknown,
+  type: T,
+): v is HasTicker & { type: T } {
   return (
-    typeof value === "object" &&
-    value !== null &&
-    (value as { type?: unknown }).type === "apewisdom:lookup" &&
-    typeof (value as { ticker?: unknown }).ticker === "string"
+    typeof v === "object" && v !== null &&
+    (v as { type?: unknown }).type === type &&
+    typeof (v as { ticker?: unknown }).ticker === "string"
   );
 }
 
 export function handleMessage(
   message: unknown,
-  fetchTicker: TickerFetcher,
-  lookupApewisdom: ApewisdomLookup,
-): Promise<string | null> | Promise<ApewisdomEntry | null> | undefined {
-  if (isTickerLookup(message)) return fetchTicker(message.isin);
-  if (isApewisdomLookup(message)) return lookupApewisdom(message.ticker);
+  handlers: MessageHandlers,
+):
+  | Promise<string | null>
+  | Promise<ApewisdomEntry | null>
+  | Promise<TradestieEntry | null>
+  | Promise<StockTwitsEntry | null>
+  | undefined {
+  if (isTickerLookup(message)) return handlers.fetchTicker(message.isin);
+  if (isTypedTickerMessage(message, "apewisdom:lookup")) return handlers.lookupApewisdom(message.ticker);
+  if (isTypedTickerMessage(message, "tradestie:lookup")) return handlers.lookupTradestie(message.ticker);
+  if (isTypedTickerMessage(message, "stocktwits:lookup")) return handlers.lookupStockTwits(message.ticker);
   return undefined;
 }
