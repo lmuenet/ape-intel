@@ -12,8 +12,6 @@ const entry = (ticker: string, rank: number) => ({
   upvotes: 1,
   rank_24h_ago: rank + 1,
   mentions_24h_ago: 90 - rank,
-  sentiment: "bullish",
-  sentiment_score: 70 - rank,
 });
 
 describe("fetchApewisdomSnapshot", () => {
@@ -38,13 +36,11 @@ describe("fetchApewisdomSnapshot", () => {
       rank: 1,
       mentions: 99,
       mentions24hAgo: 89,
-      sentimentScore: 69,
     });
     expect(map.get("NVDA")).toEqual({
       rank: 51,
       mentions: 49,
       mentions24hAgo: 39,
-      sentimentScore: 19,
     });
     expect(map.size).toBe(3);
   });

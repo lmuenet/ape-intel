@@ -54,16 +54,15 @@ function StockTwitsSection({ entry }: { entry: StockTwitsEntry | null | undefine
 function ApewisdomSection({ entry }: { entry: ApewisdomEntry | null | undefined }) {
   return (
     <section class="ape-intel-panel__source">
-      <h3 class="ape-intel-panel__section-title">Apewisdom</h3>
+      <h3 class="ape-intel-panel__section-title">Apewisdom (Buzz + Trend)</h3>
       {entry === undefined ? <Placeholder>Loading…</Placeholder>
       : entry === null ? <Placeholder>No Apewisdom data — ticker not in current top 250 trending.</Placeholder>
       : (
-        <dl class="ape-intel-panel__stats ape-intel-panel__stats--three">
+        <dl class="ape-intel-panel__stats ape-intel-panel__stats--two">
           <div>
             <dt>Mentions</dt>
             <dd>{entry.mentions}{" "}<span class="ape-intel-panel__trend">{trendArrow(entry.mentions, entry.mentions24hAgo)}</span></dd>
           </div>
-          <div><dt>Sentiment</dt><dd>{entry.sentimentScore} / 100</dd></div>
           <div><dt>Rank</dt><dd>#{entry.rank}</dd></div>
         </dl>
       )}

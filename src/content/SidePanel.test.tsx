@@ -8,7 +8,7 @@ import { SidePanel } from "./SidePanel";
 afterEach(cleanup);
 
 const apewisdom = (o: Partial<ApewisdomEntry> = {}): ApewisdomEntry => ({
-  rank: 5, mentions: 247, mentions24hAgo: 180, sentimentScore: 72, ...o,
+  rank: 5, mentions: 247, mentions24hAgo: 180, ...o,
 });
 const tradestie = (o: Partial<TradestieEntry> = {}): TradestieEntry => ({
   comments: 132, sentimentLabel: "Bullish", sentimentScore: 0.71, ...o,
@@ -58,10 +58,9 @@ describe("<SidePanel />", () => {
     expect(getByText(/No StockTwits data/i)).toBeTruthy();
   });
 
-  it("renders Apewisdom mentions, sentiment, rank, trend arrow", () => {
+  it("renders Apewisdom mentions, rank, and trend arrow", () => {
     const { getByText } = render(<SidePanel {...defaults} apewisdom={apewisdom({ mentions: 247, mentions24hAgo: 180 })} />);
     expect(getByText(/247/)).toBeTruthy();
-    expect(getByText(/72/)).toBeTruthy();
     expect(getByText(/#5/)).toBeTruthy();
     expect(getByText(/↑/)).toBeTruthy();
   });

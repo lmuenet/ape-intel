@@ -5,7 +5,6 @@ export interface ApewisdomEntry {
   rank: number;
   mentions: number;
   mentions24hAgo: number;
-  sentimentScore: number;
 }
 
 export type ApewisdomSnapshot = Map<string, ApewisdomEntry>;
@@ -20,7 +19,6 @@ interface RawEntry {
   rank: number;
   mentions: number;
   mentions_24h_ago: number;
-  sentiment_score: number;
 }
 
 interface RawPage {
@@ -43,7 +41,6 @@ export async function fetchApewisdomSnapshot(
         rank: raw.rank,
         mentions: raw.mentions,
         mentions24hAgo: raw.mentions_24h_ago,
-        sentimentScore: raw.sentiment_score,
       });
     }
   }

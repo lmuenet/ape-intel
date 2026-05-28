@@ -1,4 +1,4 @@
-const ENDPOINT = "https://tradestie.com/api/v1/apps/reddit";
+const ENDPOINT = "https://api.tradestie.com/v1/apps/reddit";
 
 export interface TradestieEntry {
   comments: number;

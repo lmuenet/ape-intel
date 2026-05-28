@@ -25,7 +25,7 @@ describe("handleMessage", () => {
   });
 
   it("routes apewisdom:lookup", async () => {
-    const entry: ApewisdomEntry = { rank: 1, mentions: 1, mentions24hAgo: 1, sentimentScore: 1 };
+    const entry: ApewisdomEntry = { rank: 1, mentions: 1, mentions24hAgo: 1 };
     const lookupApewisdom = vi.fn().mockResolvedValue(entry);
     await expect(
       handleMessage({ type: "apewisdom:lookup", ticker: "AAPL" }, handlers({ lookupApewisdom })),

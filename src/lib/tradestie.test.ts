@@ -16,7 +16,7 @@ describe("fetchTradestieSnapshot", () => {
     const map = await fetchTradestieSnapshot(fetchFn);
 
     expect(fetchFn).toHaveBeenCalledWith(
-      "https://tradestie.com/api/v1/apps/reddit",
+      "https://api.tradestie.com/v1/apps/reddit",
     );
     expect(map.get("TSLA")).toEqual({
       comments: 320,

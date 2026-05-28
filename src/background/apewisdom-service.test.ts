@@ -7,7 +7,6 @@ const entry = (rank: number): ApewisdomEntry => ({
   rank,
   mentions: 100,
   mentions24hAgo: 80,
-  sentimentScore: 60,
 });
 
 describe("createApewisdomService", () => {
