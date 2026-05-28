@@ -1,4 +1,4 @@
-# scalable-intel
+# ape-intel
 
 A Firefox browser extension that enriches [Scalable Capital](https://de.scalable.capital) stock/ETF pages with real-time community sentiment and news analysis.
 
