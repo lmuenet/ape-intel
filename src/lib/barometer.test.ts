@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeBarometer, DEFAULT_CONFIG, computeBuzz, computeTrend } from "./barometer";
+import { computeBarometer, DEFAULT_CONFIG, computeBuzz, computeTrend, aggregate, BAROMETER_LABEL_TEXT, BUZZ_TEXT, TREND_ARROW } from "./barometer";
 
 describe("computeBarometer", () => {
   it("returns unavailable when no sentiment source has data", () => {
@@ -112,5 +112,34 @@ describe("computeTrend", () => {
     expect(computeTrend({ apewisdom: { rank: 1, mentions: 100, mentions24hAgo: 50 } })).toBe("up");
     expect(computeTrend({ apewisdom: { rank: 1, mentions: 50, mentions24hAgo: 100 } })).toBe("down");
     expect(computeTrend({ apewisdom: { rank: 1, mentions: 80, mentions24hAgo: 80 } })).toBe("flat");
+  });
+});
+
+describe("aggregate", () => {
+  it("bundles barometer, buzz, and trend", () => {
+    const r = aggregate({
+      stocktwits: { bullish: 18, bearish: 4, totalMessages: 30 },
+      apewisdom: { rank: 5, mentions: 247, mentions24hAgo: 180 },
+    });
+    expect(r.barometer.label).toBe("very-bullish");
+    expect(r.buzz.level).toBe("loud");
+    expect(r.trend).toBe("up");
+  });
+});
+
+describe("display maps", () => {
+  it("has human text for every barometer label", () => {
+    expect(BAROMETER_LABEL_TEXT.unavailable).toMatch(/no sentiment/i);
+    expect(BAROMETER_LABEL_TEXT["very-bullish"]).toBe("Very Bullish");
+  });
+  it("maps trend directions to arrows", () => {
+    expect(TREND_ARROW.up).toBe("↑");
+    expect(TREND_ARROW.down).toBe("↓");
+    expect(TREND_ARROW.flat).toBe("→");
+    expect(TREND_ARROW.unknown).toBe("·");
+  });
+  it("maps buzz levels to text", () => {
+    expect(BUZZ_TEXT["on-fire"]).toMatch(/fire/i);
+    expect(BUZZ_TEXT.none).toBe("—");
   });
 });

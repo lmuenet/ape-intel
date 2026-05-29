@@ -131,3 +131,44 @@ export function computeTrend(input: BarometerInput): TrendDirection {
   if (mentions < mentions24hAgo) return "down";
   return "flat";
 }
+
+export interface Aggregate {
+  barometer: BarometerResult;
+  buzz: BuzzResult;
+  trend: TrendDirection;
+}
+
+export function aggregate(
+  input: BarometerInput,
+  config: BarometerConfig = DEFAULT_CONFIG,
+): Aggregate {
+  return {
+    barometer: computeBarometer(input, config),
+    buzz: computeBuzz(input, config),
+    trend: computeTrend(input),
+  };
+}
+
+export const BAROMETER_LABEL_TEXT: Record<BarometerLabel, string> = {
+  "very-bearish": "Very Bearish",
+  bearish: "Bearish",
+  neutral: "Neutral",
+  bullish: "Bullish",
+  "very-bullish": "Very Bullish",
+  unavailable: "No sentiment data",
+};
+
+export const BUZZ_TEXT: Record<BuzzLevel, string> = {
+  none: "—",
+  quiet: "Quiet",
+  chatter: "Chatter",
+  loud: "Loud",
+  "on-fire": "On fire",
+};
+
+export const TREND_ARROW: Record<TrendDirection, string> = {
+  up: "↑",
+  flat: "→",
+  down: "↓",
+  unknown: "·",
+};
