@@ -3,7 +3,7 @@ import type { EarningsDate, NewsItem } from "../lib/finnhub";
 import { createTtlCache } from "../lib/ttl-cache";
 
 const NEWS_TTL_MS = 30 * 60 * 1000;
-const EARNINGS_TTL_MS = 24 * 60 * 60 * 1000;
+const EARNINGS_TTL_MS = 24 * 60 * 60 * 1000; // earnings dates change rarely
 const KEY_NAME = "finnhub:apiKey";
 
 export type NewsFetcher = (ticker: string, apiKey: string) => Promise<NewsItem[]>;
@@ -19,11 +19,11 @@ export function createFinnhubService(
   newsFetcher: NewsFetcher,
   earningsFetcher: EarningsFetcher,
 ): FinnhubService {
-  const newsCache = createTtlCache<NewsItem[] | null>(
+  const newsCache = createTtlCache<NewsItem[]>(
     store,
     async (ticker) => {
-      const key = await store.get<string>(KEY_NAME);
-      if (!key) return null;
+      // The outer gate in news() guarantees a key exists before the cache is queried.
+      const key = (await store.get<string>(KEY_NAME))!;
       return newsFetcher(ticker, key);
     },
     { ttlMs: NEWS_TTL_MS, keyPrefix: "finnhub-news" },
@@ -32,8 +32,8 @@ export function createFinnhubService(
   const earningsCache = createTtlCache<EarningsDate | null>(
     store,
     async (ticker) => {
-      const key = await store.get<string>(KEY_NAME);
-      if (!key) return null;
+      // The outer gate in earnings() guarantees a key exists before the cache is queried.
+      const key = (await store.get<string>(KEY_NAME))!;
       return earningsFetcher(ticker, key);
     },
     { ttlMs: EARNINGS_TTL_MS, keyPrefix: "finnhub-earnings" },

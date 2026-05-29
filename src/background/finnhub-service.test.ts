@@ -39,4 +39,15 @@ describe("createFinnhubService", () => {
     await service.earnings("TSLA");
     expect(earningsFetcher).toHaveBeenCalledTimes(2);
   });
+
+  it("fetches fresh once a key is added after a no-key call", async () => {
+    const store = createInMemoryKvStore();
+    const newsFetcher = vi.fn(async () => [newsItem("u1")]);
+    const service = createFinnhubService(store, newsFetcher, vi.fn());
+    expect(await service.news("AAPL")).toBeNull();
+    expect(newsFetcher).not.toHaveBeenCalled();
+    await store.set("finnhub:apiKey", "KEY");
+    expect(await service.news("AAPL")).toEqual([newsItem("u1")]);
+    expect(newsFetcher).toHaveBeenCalledTimes(1);
+  });
 });
