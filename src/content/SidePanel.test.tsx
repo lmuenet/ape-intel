@@ -108,4 +108,10 @@ describe("<SidePanel />", () => {
     const section = container.querySelector(".ape-intel-panel__barometer")!;
     expect(section.textContent).toMatch(/Loading/i);
   });
+
+  it("shows a no-data message in the Barometer section when aggregate is null", () => {
+    const { container } = render(<SidePanel {...defaults} aggregate={null} />);
+    const section = container.querySelector(".ape-intel-panel__barometer")!;
+    expect(section.textContent).toMatch(/No Barometer data/i);
+  });
 });
