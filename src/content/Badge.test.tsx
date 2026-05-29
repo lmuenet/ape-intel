@@ -48,12 +48,17 @@ describe("<Badge />", () => {
     };
     const { getByText } = render(<Badge isin="US0378331005" ticker="AAPL" aggregate={aggregate} />);
     expect(getByText("Very Bullish")).toBeTruthy();
-    expect(getByText(/Loud/)).toBeTruthy();
+    expect(getByText("Loud")).toBeTruthy();
     expect(getByText("↑")).toBeTruthy();
   });
 
   it("omits the barometer row when aggregate is undefined", () => {
     const { container } = render(<Badge isin="US0378331005" ticker="AAPL" />);
+    expect(container.querySelector(".ape-intel-badge__barometer")).toBeNull();
+  });
+
+  it("omits the barometer row when aggregate is null", () => {
+    const { container } = render(<Badge isin="US0378331005" ticker="AAPL" aggregate={null} />);
     expect(container.querySelector(".ape-intel-badge__barometer")).toBeNull();
   });
 });

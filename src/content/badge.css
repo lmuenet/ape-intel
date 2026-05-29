@@ -38,6 +38,7 @@
   font-size: 14px;
   color: #4ade80;
 }
+/* secondary row — intentionally smaller than the 12px badge baseline */
 .ape-intel-badge__barometer {
   display: flex;
   gap: 8px;
