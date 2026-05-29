@@ -9,20 +9,25 @@ import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import { aggregate as computeAggregate } from "../lib/barometer";
 import type { Aggregate } from "../lib/barometer";
+import type { EarningsDate, NewsItem } from "../lib/finnhub";
 import type {
   ApewisdomLookupMessage,
+  FinnhubEarningsLookupMessage,
+  FinnhubNewsLookupMessage,
   StockTwitsLookupMessage,
   TickerLookupMessage,
 } from "../background/messages";
 
 const HOST_ID = "ape-intel-host";
+const FINNHUB_KEY = "finnhub:apiKey";
 
 async function send<T>(message: unknown): Promise<T> {
   return (await browser.runtime.sendMessage(message)) as T;
 }
 
+const store = browserStorageKvStore(browser.storage.local);
 const tickerCache = createTickerCache(
-  browserStorageKvStore(browser.storage.local),
+  store,
   (isin) => send<string | null>({ type: "ticker:lookup", isin } satisfies TickerLookupMessage),
 );
 
@@ -46,6 +51,9 @@ let currentIsin: string | null = null;
 let currentTicker: string | null | undefined = undefined;
 let currentApewisdom: ApewisdomEntry | null | undefined = undefined;
 let currentStockTwits: StockTwitsEntry | null | undefined = undefined;
+let currentNews: NewsItem[] | null | undefined = undefined;
+let currentEarnings: EarningsDate | null | undefined = undefined;
+let finnhubKey: string | null | undefined = undefined;
 
 // undefined while either sentiment/volume source is still loading; otherwise a
 // computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
@@ -53,6 +61,8 @@ function currentAggregate(): Aggregate | undefined {
   if (currentStockTwits === undefined || currentApewisdom === undefined) return undefined;
   return computeAggregate({ stocktwits: currentStockTwits, apewisdom: currentApewisdom });
 }
+
+let generation = 0;
 
 function paint(): void {
   if (currentIsin === null) {
@@ -73,6 +83,10 @@ function paint(): void {
         aggregate={currentAggregate()}
         apewisdom={currentApewisdom}
         stocktwits={currentStockTwits}
+        news={currentNews}
+        earnings={currentEarnings}
+        finnhubKey={finnhubKey}
+        onSaveKey={onSaveKey}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />
@@ -86,8 +100,6 @@ function paint(): void {
   );
 }
 
-let generation = 0;
-
 function dispatchSentimentLookups(ticker: string, gen: number): void {
   send<ApewisdomEntry | null>({ type: "apewisdom:lookup", ticker } satisfies ApewisdomLookupMessage).then(
     (entry) => { if (gen === generation) { currentApewisdom = entry; paint(); } },
@@ -99,6 +111,30 @@ function dispatchSentimentLookups(ticker: string, gen: number): void {
   );
 }
 
+function dispatchFinnhubLookups(ticker: string, gen: number): void {
+  currentNews = undefined;
+  currentEarnings = undefined;
+  paint();
+  send<NewsItem[] | null>({ type: "finnhub:news", ticker } satisfies FinnhubNewsLookupMessage).then(
+    (items) => { if (gen === generation) { currentNews = items; paint(); } },
+    (e) => { if (gen === generation) { console.warn("[ape-intel] finnhub news lookup failed", e); currentNews = null; paint(); } },
+  );
+  send<EarningsDate | null>({ type: "finnhub:earnings", ticker } satisfies FinnhubEarningsLookupMessage).then(
+    (date) => { if (gen === generation) { currentEarnings = date; paint(); } },
+    (e) => { if (gen === generation) { console.warn("[ape-intel] finnhub earnings lookup failed", e); currentEarnings = null; paint(); } },
+  );
+}
+
+function onSaveKey(key: string): void {
+  const gen = generation;
+  store.set(FINNHUB_KEY, key).then(() => {
+    if (gen !== generation) return;
+    finnhubKey = key;
+    paint();
+    if (typeof currentTicker === "string") dispatchFinnhubLookups(currentTicker, gen);
+  });
+}
+
 observeIsin(window, (isin) => {
   generation += 1;
   const gen = generation;
@@ -107,6 +143,9 @@ observeIsin(window, (isin) => {
   currentTicker = undefined;
   currentApewisdom = undefined;
   currentStockTwits = undefined;
+  currentNews = undefined;
+  currentEarnings = undefined;
+  finnhubKey = undefined;
   isChartOpen = false; // close chart on navigation
 
   if (!isin) { paint(); return; }
@@ -117,10 +156,21 @@ observeIsin(window, (isin) => {
       if (gen !== generation) return;
       currentTicker = ticker;
       paint();
-      if (ticker) dispatchSentimentLookups(ticker, gen);
-      else {
+
+      store.get<string>(FINNHUB_KEY).then((key) => {
+        if (gen !== generation) return;
+        finnhubKey = key ?? null;
+        paint();
+        if (ticker && key) dispatchFinnhubLookups(ticker, gen);
+      });
+
+      if (ticker) {
+        dispatchSentimentLookups(ticker, gen);
+      } else {
         currentApewisdom = null;
         currentStockTwits = null;
+        currentNews = null;
+        currentEarnings = null;
         paint();
       }
     },
@@ -130,6 +180,9 @@ observeIsin(window, (isin) => {
       currentTicker = null;
       currentApewisdom = null;
       currentStockTwits = null;
+      currentNews = null;
+      currentEarnings = null;
+      finnhubKey = null;
       paint();
     },
   );

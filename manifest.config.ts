@@ -21,6 +21,7 @@ export default defineManifest({
     "https://apewisdom.io/*",
     "https://api.tradestie.com/*",
     "https://api.stocktwits.com/*",
+    "https://finnhub.io/*",
   ],
   background: {
     scripts: ["src/background/index.ts"],
