@@ -131,6 +131,10 @@ describe("display maps", () => {
   it("has human text for every barometer label", () => {
     expect(BAROMETER_LABEL_TEXT.unavailable).toMatch(/no sentiment/i);
     expect(BAROMETER_LABEL_TEXT["very-bullish"]).toBe("Very Bullish");
+    expect(BAROMETER_LABEL_TEXT["very-bearish"]).toBe("Very Bearish");
+    expect(BAROMETER_LABEL_TEXT.bearish).toBe("Bearish");
+    expect(BAROMETER_LABEL_TEXT.neutral).toBe("Neutral");
+    expect(BAROMETER_LABEL_TEXT.bullish).toBe("Bullish");
   });
   it("maps trend directions to arrows", () => {
     expect(TREND_ARROW.up).toBe("↑");

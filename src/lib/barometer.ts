@@ -149,6 +149,8 @@ export function aggregate(
   };
 }
 
+// Canonical display strings. Kept beside the types so Record<Union,string>
+// forces a compile error if a new label/level/direction is ever added.
 export const BAROMETER_LABEL_TEXT: Record<BarometerLabel, string> = {
   "very-bearish": "Very Bearish",
   bearish: "Bearish",
