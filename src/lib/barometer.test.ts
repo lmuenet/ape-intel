@@ -93,6 +93,14 @@ describe("computeBuzz", () => {
     const r = computeBuzz({ stocktwits: { bullish: 1, bearish: 1, totalMessages: 30 } });
     expect(r).toEqual({ level: "chatter", mentions: 30 });
   });
+
+  it("prefers Apewisdom mentions over StockTwits when both are present", () => {
+    const r = computeBuzz({
+      apewisdom: { rank: 1, mentions: 600, mentions24hAgo: 0 },
+      stocktwits: { bullish: 1, bearish: 1, totalMessages: 10 },
+    });
+    expect(r).toEqual({ level: "on-fire", mentions: 600 });
+  });
 });
 
 describe("computeTrend", () => {
