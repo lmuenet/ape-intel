@@ -94,3 +94,40 @@ export function computeBarometer(
     lowConfidence: contributions.length < 2 || totalConfidence < 0.5,
   };
 }
+
+export type BuzzLevel = "none" | "quiet" | "chatter" | "loud" | "on-fire";
+
+export interface BuzzResult {
+  level: BuzzLevel;
+  mentions: number | null;
+}
+
+export function computeBuzz(
+  input: BarometerInput,
+  config: BarometerConfig = DEFAULT_CONFIG,
+): BuzzResult {
+  let mentions: number | null = null;
+  if (input.apewisdom) mentions = input.apewisdom.mentions;
+  else if (input.stocktwits) mentions = input.stocktwits.totalMessages;
+
+  if (mentions === null) return { level: "none", mentions: null };
+
+  const { chatter, loud, onFire } = config.buzzBuckets;
+  let level: BuzzLevel;
+  if (mentions >= onFire) level = "on-fire";
+  else if (mentions >= loud) level = "loud";
+  else if (mentions >= chatter) level = "chatter";
+  else level = "quiet";
+
+  return { level, mentions };
+}
+
+export type TrendDirection = "up" | "flat" | "down" | "unknown";
+
+export function computeTrend(input: BarometerInput): TrendDirection {
+  if (!input.apewisdom) return "unknown";
+  const { mentions, mentions24hAgo } = input.apewisdom;
+  if (mentions > mentions24hAgo) return "up";
+  if (mentions < mentions24hAgo) return "down";
+  return "flat";
+}

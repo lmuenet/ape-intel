@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeBarometer, DEFAULT_CONFIG } from "./barometer";
+import { computeBarometer, DEFAULT_CONFIG, computeBuzz, computeTrend } from "./barometer";
 
 describe("computeBarometer", () => {
   it("returns unavailable when no sentiment source has data", () => {
@@ -70,5 +70,39 @@ describe("computeBarometer", () => {
     });
     expect(r.totalConfidence).toBe(2);
     expect(r.score).toBe(1);
+  });
+});
+
+describe("computeBuzz", () => {
+  it("returns none when no volume source is present", () => {
+    expect(computeBuzz({})).toEqual({ level: "none", mentions: null });
+  });
+
+  it("buckets Apewisdom mentions at the default boundaries", () => {
+    const buzz = (mentions: number) =>
+      computeBuzz({ apewisdom: { rank: 1, mentions, mentions24hAgo: 0 } }).level;
+    expect(buzz(24)).toBe("quiet");
+    expect(buzz(25)).toBe("chatter");
+    expect(buzz(99)).toBe("chatter");
+    expect(buzz(100)).toBe("loud");
+    expect(buzz(499)).toBe("loud");
+    expect(buzz(500)).toBe("on-fire");
+  });
+
+  it("falls back to StockTwits message count when Apewisdom is absent", () => {
+    const r = computeBuzz({ stocktwits: { bullish: 1, bearish: 1, totalMessages: 30 } });
+    expect(r).toEqual({ level: "chatter", mentions: 30 });
+  });
+});
+
+describe("computeTrend", () => {
+  it("is unknown without Apewisdom", () => {
+    expect(computeTrend({ stocktwits: { bullish: 1, bearish: 1, totalMessages: 2 } })).toBe("unknown");
+  });
+
+  it("reads direction from mentions vs mentions24hAgo", () => {
+    expect(computeTrend({ apewisdom: { rank: 1, mentions: 100, mentions24hAgo: 50 } })).toBe("up");
+    expect(computeTrend({ apewisdom: { rank: 1, mentions: 50, mentions24hAgo: 100 } })).toBe("down");
+    expect(computeTrend({ apewisdom: { rank: 1, mentions: 80, mentions24hAgo: 80 } })).toBe("flat");
   });
 });
