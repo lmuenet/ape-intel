@@ -146,3 +146,30 @@
   background: #4ade80;
   color: #111;
 }
+
+.ape-intel-panel__barometer {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.ape-intel-panel__barometer-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.ape-intel-panel__barometer-label {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ape-intel-panel__barometer-score {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.ape-intel-panel__barometer-note {
+  margin: 4px 0 0;
+  font-size: 11px;
+  opacity: 0.6;
+}

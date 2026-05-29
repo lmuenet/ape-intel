@@ -1,21 +1,18 @@
 import "./sidePanel.css";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
+import { BAROMETER_LABEL_TEXT, BUZZ_TEXT, TREND_ARROW, computeTrend } from "../lib/barometer";
+import type { Aggregate } from "../lib/barometer";
 import { ExternalLinksBar } from "./ExternalLinksBar";
 
 export interface SidePanelProps {
   isOpen: boolean;
   ticker: string | null | undefined;
+  aggregate: Aggregate | null | undefined;
   apewisdom: ApewisdomEntry | null | undefined;
   stocktwits: StockTwitsEntry | null | undefined;
   onClose: () => void;
   onTradingViewClick: () => void;
-}
-
-function trendArrow(now: number, prev: number): string {
-  if (now > prev) return "↑";
-  if (now < prev) return "↓";
-  return "→";
 }
 
 function bullishRatio(bullish: number, bearish: number): string {
@@ -61,7 +58,7 @@ function ApewisdomSection({ entry }: { entry: ApewisdomEntry | null | undefined 
         <dl class="ape-intel-panel__stats ape-intel-panel__stats--two">
           <div>
             <dt>Mentions</dt>
-            <dd>{entry.mentions}{" "}<span class="ape-intel-panel__trend">{trendArrow(entry.mentions, entry.mentions24hAgo)}</span></dd>
+            <dd>{entry.mentions}{" "}<span class="ape-intel-panel__trend">{TREND_ARROW[computeTrend({ apewisdom: entry })]}</span></dd>
           </div>
           <div><dt>Rank</dt><dd>#{entry.rank}</dd></div>
         </dl>
@@ -70,8 +67,48 @@ function ApewisdomSection({ entry }: { entry: ApewisdomEntry | null | undefined 
   );
 }
 
+function scoreText(score: number | null): string {
+  if (score === null) return "—";
+  return score > 0 ? `+${score.toFixed(2)}` : score.toFixed(2);
+}
+
+function BarometerSection({ aggregate }: { aggregate: Aggregate | null | undefined }) {
+  return (
+    <section class="ape-intel-panel__barometer">
+      <h3 class="ape-intel-panel__section-title">Barometer</h3>
+      {aggregate === undefined ? <Placeholder>Loading…</Placeholder>
+      : aggregate === null ? <Placeholder>No Barometer data.</Placeholder>
+      : (
+        <div class="ape-intel-panel__barometer-body">
+          <div class="ape-intel-panel__barometer-headline">
+            <span
+              class="ape-intel-panel__barometer-label"
+              data-label={aggregate.barometer.label}
+            >
+              {BAROMETER_LABEL_TEXT[aggregate.barometer.label]}
+            </span>
+            <span class="ape-intel-panel__barometer-score">
+              {scoreText(aggregate.barometer.score)}
+            </span>
+          </div>
+          {aggregate.barometer.label !== "unavailable" && aggregate.barometer.lowConfidence ? (
+            <p class="ape-intel-panel__barometer-note">
+              low confidence · {aggregate.barometer.contributingSources}{" "}
+              source{aggregate.barometer.contributingSources === 1 ? "" : "s"}
+            </p>
+          ) : null}
+          <dl class="ape-intel-panel__stats ape-intel-panel__stats--two">
+            <div><dt>Buzz</dt><dd>{BUZZ_TEXT[aggregate.buzz.level]}</dd></div>
+            <div><dt>Trend</dt><dd>{TREND_ARROW[aggregate.trend]}</dd></div>
+          </dl>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function SidePanel({
-  isOpen, ticker, apewisdom, stocktwits, onClose, onTradingViewClick,
+  isOpen, ticker, aggregate, apewisdom, stocktwits, onClose, onTradingViewClick,
 }: SidePanelProps) {
   if (!isOpen) return null;
 
@@ -81,6 +118,7 @@ export function SidePanel({
         <h2 class="ape-intel-panel__title">{ticker ?? "Resolving ticker…"}</h2>
         <button type="button" class="ape-intel-panel__close" aria-label="Close side panel" onClick={onClose}>×</button>
       </header>
+      <BarometerSection aggregate={aggregate} />
       <StockTwitsSection entry={stocktwits} />
       <ApewisdomSection entry={apewisdom} />
       <ExternalLinksBar ticker={ticker} onTradingViewClick={onTradingViewClick} />

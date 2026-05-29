@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent } from "@testing-library/preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
+import type { Aggregate } from "../lib/barometer";
 import { SidePanel } from "./SidePanel";
 
 afterEach(cleanup);
@@ -13,11 +14,18 @@ const stocktwits = (o: Partial<StockTwitsEntry> = {}): StockTwitsEntry => ({
   bullish: 18, bearish: 4, totalMessages: 30, ...o,
 });
 
+const fullAggregate: Aggregate = {
+  barometer: { score: 0.7, label: "very-bullish", contributingSources: 1, totalConfidence: 1, lowConfidence: true },
+  buzz: { level: "loud", mentions: 247 },
+  trend: "flat",
+};
+
 const defaults = {
   isOpen: true,
   ticker: "AAPL" as string | null | undefined,
   apewisdom: apewisdom() as ApewisdomEntry | null | undefined,
   stocktwits: stocktwits() as StockTwitsEntry | null | undefined,
+  aggregate: fullAggregate as Aggregate | null | undefined,
   onClose: () => {},
   onTradingViewClick: () => {},
 };
@@ -70,5 +78,34 @@ describe("<SidePanel />", () => {
     const { container } = render(<SidePanel {...defaults} onClose={onClose} />);
     fireEvent.click(container.querySelector(".ape-intel-panel__close")!);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders the Barometer headline label and score", () => {
+    const { getByText, container } = render(<SidePanel {...defaults} />);
+    expect(container.querySelector(".ape-intel-panel__barometer")).toBeTruthy();
+    expect(getByText("Very Bullish")).toBeTruthy();
+    expect(getByText("+0.70")).toBeTruthy();
+  });
+
+  it("shows a low-confidence note with the source count", () => {
+    const { getByText } = render(<SidePanel {...defaults} />);
+    expect(getByText(/low confidence · 1 source/i)).toBeTruthy();
+  });
+
+  it("shows 'No sentiment data' and no low-confidence note when unavailable", () => {
+    const unavailable: Aggregate = {
+      barometer: { score: null, label: "unavailable", contributingSources: 0, totalConfidence: 0, lowConfidence: true },
+      buzz: { level: "none", mentions: null },
+      trend: "unknown",
+    };
+    const { getByText, queryByText } = render(<SidePanel {...defaults} aggregate={unavailable} />);
+    expect(getByText(/No sentiment data/i)).toBeTruthy();
+    expect(queryByText(/low confidence/i)).toBeNull();
+  });
+
+  it("shows Loading in the Barometer section when aggregate is undefined", () => {
+    const { container } = render(<SidePanel {...defaults} aggregate={undefined} />);
+    const section = container.querySelector(".ape-intel-panel__barometer")!;
+    expect(section.textContent).toMatch(/Loading/i);
   });
 });
