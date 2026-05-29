@@ -11,11 +11,12 @@ export interface EarningsRowProps {
   earnings: EarningsDate | null | undefined;
 }
 
-function newsDate(datetime: number): string {
-  return new Date(datetime * 1000).toISOString().slice(0, 10);
+function formatUnixDate(unixSeconds: number): string {
+  return new Date(unixSeconds * 1000).toISOString().slice(0, 10);
 }
 
 function KeyForm({ onSaveKey }: { onSaveKey: (key: string) => void }) {
+  // Intentionally uncontrolled: the value is read from the form on submit, no useState needed.
   const onSubmit = (e: Event) => {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
@@ -25,7 +26,7 @@ function KeyForm({ onSaveKey }: { onSaveKey: (key: string) => void }) {
   };
   return (
     <form class="ape-intel-news__keyform" onSubmit={onSubmit}>
-      <input type="text" name="finnhubKey" placeholder="Finnhub API key" class="ape-intel-news__keyinput" />
+      <input type="text" name="finnhubKey" aria-label="Finnhub API key" placeholder="Finnhub API key" class="ape-intel-news__keyinput" />
       <button type="submit" class="ape-intel-news__keysave">Save</button>
     </form>
   );
@@ -49,7 +50,7 @@ export function NewsSection({ hasKey, news, onSaveKey }: NewsSectionProps) {
               <div class="ape-intel-news__meta">
                 <span class="ape-intel-news__tag" data-catalyst={it.catalyst}>{CATALYST_LABEL[it.catalyst]}</span>
                 {it.source ? <span class="ape-intel-news__source">{it.source}</span> : null}
-                <span class="ape-intel-news__date">{newsDate(it.datetime)}</span>
+                <span class="ape-intel-news__date">{formatUnixDate(it.datetime)}</span>
               </div>
             </li>
           ))}
