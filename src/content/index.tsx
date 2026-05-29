@@ -46,7 +46,13 @@ let currentIsin: string | null = null;
 let currentTicker: string | null | undefined = undefined;
 let currentApewisdom: ApewisdomEntry | null | undefined = undefined;
 let currentStockTwits: StockTwitsEntry | null | undefined = undefined;
-let currentAggregate: Aggregate | null | undefined = undefined;
+
+// undefined while either sentiment/volume source is still loading; otherwise a
+// computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
+function currentAggregate(): Aggregate | undefined {
+  if (currentStockTwits === undefined || currentApewisdom === undefined) return undefined;
+  return computeAggregate({ stocktwits: currentStockTwits, apewisdom: currentApewisdom });
+}
 
 function paint(): void {
   if (currentIsin === null) {
@@ -58,12 +64,13 @@ function paint(): void {
       <Badge
         isin={currentIsin}
         ticker={currentTicker}
+        aggregate={currentAggregate()}
         onClick={() => { isPanelOpen = !isPanelOpen; paint(); }}
       />
       <SidePanel
         isOpen={isPanelOpen}
         ticker={currentTicker}
-        aggregate={currentAggregate}
+        aggregate={currentAggregate()}
         apewisdom={currentApewisdom}
         stocktwits={currentStockTwits}
         onClose={() => { isPanelOpen = false; paint(); }}
@@ -81,27 +88,14 @@ function paint(): void {
 
 let generation = 0;
 
-function refreshAggregate(): void {
-  if (currentApewisdom === undefined && currentStockTwits === undefined) {
-    currentAggregate = undefined;
-  } else if (currentApewisdom === null && currentStockTwits === null) {
-    currentAggregate = null;
-  } else {
-    currentAggregate = computeAggregate({
-      apewisdom: currentApewisdom ?? undefined,
-      stocktwits: currentStockTwits ?? undefined,
-    });
-  }
-}
-
 function dispatchSentimentLookups(ticker: string, gen: number): void {
   send<ApewisdomEntry | null>({ type: "apewisdom:lookup", ticker } satisfies ApewisdomLookupMessage).then(
-    (entry) => { if (gen === generation) { currentApewisdom = entry; refreshAggregate(); paint(); } },
-    (e) => { if (gen === generation) { console.warn("[ape-intel] apewisdom lookup failed", e); currentApewisdom = null; refreshAggregate(); paint(); } },
+    (entry) => { if (gen === generation) { currentApewisdom = entry; paint(); } },
+    (e) => { if (gen === generation) { console.warn("[ape-intel] apewisdom lookup failed", e); currentApewisdom = null; paint(); } },
   );
   send<StockTwitsEntry | null>({ type: "stocktwits:lookup", ticker } satisfies StockTwitsLookupMessage).then(
-    (entry) => { if (gen === generation) { currentStockTwits = entry; refreshAggregate(); paint(); } },
-    (e) => { if (gen === generation) { console.warn("[ape-intel] stocktwits lookup failed", e); currentStockTwits = null; refreshAggregate(); paint(); } },
+    (entry) => { if (gen === generation) { currentStockTwits = entry; paint(); } },
+    (e) => { if (gen === generation) { console.warn("[ape-intel] stocktwits lookup failed", e); currentStockTwits = null; paint(); } },
   );
 }
 
@@ -113,7 +107,6 @@ observeIsin(window, (isin) => {
   currentTicker = undefined;
   currentApewisdom = undefined;
   currentStockTwits = undefined;
-  currentAggregate = undefined;
   isChartOpen = false; // close chart on navigation
 
   if (!isin) { paint(); return; }
@@ -128,7 +121,6 @@ observeIsin(window, (isin) => {
       else {
         currentApewisdom = null;
         currentStockTwits = null;
-        currentAggregate = null;
         paint();
       }
     },
@@ -138,7 +130,6 @@ observeIsin(window, (isin) => {
       currentTicker = null;
       currentApewisdom = null;
       currentStockTwits = null;
-      currentAggregate = null;
       paint();
     },
   );
