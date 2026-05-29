@@ -81,4 +81,14 @@ describe("fetchNextEarnings", () => {
     const fetchFn = vi.fn().mockResolvedValue(new Response("x", { status: 500 }));
     await expect(fetchNextEarnings("AAPL", "K", fetchFn, NOW)).rejects.toThrow(/500/);
   });
+
+  it("includes earnings dated today", async () => {
+    const body = { earningsCalendar: [{ date: "2026-05-29", epsEstimate: 3.0 }] };
+    expect(await fetchNextEarnings("AAPL", "KEY", vi.fn().mockResolvedValue(ok(body)), NOW))
+      .toEqual({ date: "2026-05-29", epsEstimate: 3.0 });
+  });
+
+  it("returns null when earningsCalendar is absent", async () => {
+    expect(await fetchNextEarnings("AAPL", "KEY", vi.fn().mockResolvedValue(ok({})), NOW)).toBeNull();
+  });
 });
