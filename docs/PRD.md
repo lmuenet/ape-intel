@@ -69,6 +69,12 @@ multi-asset compare.
 Portfolio tracking, trade execution, push notifications, own backend, other
 brokers, Buy/Sell recommendations from the LLM, telemetry of any kind.
 
+> These non-goals bind **the extension**. A post-v1 *external* Claude Code
+> routine that consumes the extension's exported data (see §11) does not violate
+> them: the scheduling, synthesis and journaling live outside the extension, on
+> the user's machine. "No backend / no push" stays true for the extension
+> itself.
+
 ---
 
 ## 3. Domain glossary (reference)
@@ -162,6 +168,12 @@ Top 5 News Items from last 7 days (Finnhub `/company-news`, English only).
 Next Earnings Date with consensus EPS estimate when Finnhub returns one;
 visible in Side Panel but not as headline element.
 
+> **Post-v1 direction (§11):** the News section is expected to grow from a
+> Top-5 display toward *catalyst-grade*, structured output (earnings, guidance,
+> M&A, regulatory, etc.) that an external routine can reason over. Keep News
+> Items in a structured, exportable shape so this is additive later, not a
+> rewrite.
+
 ### F5. Manual refresh
 A Refresh button in the Side Panel ignores TTLs for the current Asset.
 Disabled for 3 minutes after each use (per Asset).
@@ -248,6 +260,14 @@ in `docs/superpowers/plans/`.
 7. **AI Analysis** — Briefing assembly + Anthropic/OpenAI adapters + export
 8. **Polish** — Settings, Logging UI, Coverage states copy, error states
 
+> **Forward pressure from the post-v1 vision (§11):** the Trending overview and
+> Tradestie reactivation are no longer just "nice to have" — they are the data
+> foundation for the future Morning Call's market-wide scan. Likewise the News
+> section is expected to grow toward *catalyst-grade*, structured output (see
+> §6 F4 note). These remain post-MVP, but the v1 work should avoid choices that
+> make them hard to add later (e.g. keep news items and the daily snapshot in a
+> structured, exportable shape).
+
 ---
 
 ## 10. Open calibration items
@@ -257,3 +277,26 @@ in `docs/superpowers/plans/`.
   parameterised, not hard-coded constants scattered across modules.
 - Optional: a manual hide toggle for the Badge if it collides with Scalable
   tooltips/modals in practice (ADR-0003 anticipates this).
+
+---
+
+## 11. Future direction (post-v1): Daily Trading Loop
+
+> Vision, **not** binding for v1. Full design: `docs/superpowers/specs/2026-05-29-daily-trading-loop-design.md`.
+
+Once the MVP is complete, the plan is to build — *externally* — a pair of
+scheduled **Claude Code routines** (cron) that turn the extension's collected
+data into a daily trading workflow. The extension stays the data
+collector/frontend; the routines are the analyst on top.
+
+- **Morning Call** (pre-open): a market-wide scan for the day's hottest plays
+  plus a focused watch list, driven by trending sentiment (Apewisdom +
+  Tradestie + StockTwits), catalyst-grade news, and today's earnings.
+- **Evening Review** (post-close): asks which plays were made, logs them to a
+  Trade Journal, and analyses them in retrospect to refine strategy over time.
+
+The routine consumes the extension's **own sources** in a structured way inside
+the cron (ideally via an exported daily snapshot / the existing Markdown
+Briefing), rather than re-scraping upstream APIs. This is why §9 flags the
+Trending overview, Tradestie reactivation, catalyst-grade News and a structured
+export as forward pressure on the v1 build.
