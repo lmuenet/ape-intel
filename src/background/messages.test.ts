@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import type { TradestieEntry } from "../lib/tradestie";
+import type { NewsItem, EarningsDate } from "../lib/finnhub";
 import { handleMessage, type MessageHandlers } from "./messages";
 
 const handlers = (
@@ -11,6 +12,8 @@ const handlers = (
   lookupApewisdom: vi.fn(),
   lookupTradestie: vi.fn(),
   lookupStockTwits: vi.fn(),
+  lookupFinnhubNews: vi.fn(),
+  lookupFinnhubEarnings: vi.fn(),
   ...overrides,
 });
 
@@ -53,6 +56,23 @@ describe("handleMessage", () => {
     await expect(
       handleMessage({ type: "stocktwits:lookup", ticker: "AAPL" }, handlers({ lookupStockTwits })),
     ).rejects.toThrow("boom");
+  });
+
+  it("routes finnhub:news", async () => {
+    const items: NewsItem[] = [{ headline: "h", source: "s", url: "u", datetime: 1, catalyst: "news" }];
+    const lookupFinnhubNews = vi.fn().mockResolvedValue(items);
+    await expect(
+      handleMessage({ type: "finnhub:news", ticker: "AAPL" }, handlers({ lookupFinnhubNews })),
+    ).resolves.toBe(items);
+    expect(lookupFinnhubNews).toHaveBeenCalledWith("AAPL");
+  });
+
+  it("routes finnhub:earnings", async () => {
+    const date: EarningsDate = { date: "2026-06-15", epsEstimate: 2.1 };
+    const lookupFinnhubEarnings = vi.fn().mockResolvedValue(date);
+    await expect(
+      handleMessage({ type: "finnhub:earnings", ticker: "AAPL" }, handlers({ lookupFinnhubEarnings })),
+    ).resolves.toBe(date);
   });
 
   it("returns undefined for unknown / malformed messages", () => {
