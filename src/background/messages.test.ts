@@ -73,6 +73,7 @@ describe("handleMessage", () => {
     await expect(
       handleMessage({ type: "finnhub:earnings", ticker: "AAPL" }, handlers({ lookupFinnhubEarnings })),
     ).resolves.toBe(date);
+    expect(lookupFinnhubEarnings).toHaveBeenCalledWith("AAPL");
   });
 
   it("returns undefined for unknown / malformed messages", () => {
