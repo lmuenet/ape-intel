@@ -38,3 +38,19 @@
   font-size: 14px;
   color: #4ade80;
 }
+.ape-intel-badge__barometer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.ape-intel-badge__barometer-label {
+  font-weight: 600;
+}
+
+.ape-intel-badge__buzz,
+.ape-intel-badge__trend {
+  opacity: 0.8;
+}
