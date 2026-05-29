@@ -3,8 +3,8 @@ export type CatalystTag =
 
 // Ordered: first match wins. earnings before guidance; m&a before product.
 const RULES: Array<{ tag: CatalystTag; pattern: RegExp }> = [
-  { tag: "earnings", pattern: /\b(earnings|eps|quarterly results|q[1-4]\b|beats?|misses?|revenue)\b/i },
-  { tag: "m&a", pattern: /\b(acquir\w*|merger|buyout|takeover|acquisition|stake)\b/i },
+  { tag: "earnings", pattern: /\b(earnings|eps|quarterly results|q[1-4]|beats?|misses?|revenue)\b/i },
+  { tag: "m&a", pattern: /\b(acquir\w*|merger|buyout|takeover|acquisition)\b/i },
   { tag: "guidance", pattern: /\b(guidance|outlook|forecast|raises|cuts|lowers)\b/i },
   { tag: "analyst", pattern: /\b(upgrades?|downgrades?|price target|initiates|rating)\b/i },
   { tag: "regulatory", pattern: /\b(fda|approval|lawsuit|sec|investigation|antitrust|probe|recall)\b/i },

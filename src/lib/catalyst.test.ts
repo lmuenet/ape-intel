@@ -26,6 +26,9 @@ describe("classifyCatalyst", () => {
   it("checks earnings before guidance", () => {
     expect(classifyCatalyst("Acme earnings beat as it raises guidance")).toBe("earnings");
   });
+  it("checks m&a before product", () => {
+    expect(classifyCatalyst("Broadcom launches new product after acquiring VMware")).toBe("m&a");
+  });
   it("exposes a display label for every tag", () => {
     expect(CATALYST_LABEL["m&a"]).toBe("M&A");
     expect(CATALYST_LABEL.news).toBe("News");
