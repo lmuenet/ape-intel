@@ -4,6 +4,8 @@ import type { StockTwitsEntry } from "../lib/stocktwits";
 import { BAROMETER_LABEL_TEXT, BUZZ_TEXT, TREND_ARROW, computeTrend } from "../lib/barometer";
 import type { Aggregate } from "../lib/barometer";
 import { ExternalLinksBar } from "./ExternalLinksBar";
+import { NewsSection, EarningsRow } from "./NewsSection";
+import type { EarningsDate, NewsItem } from "../lib/finnhub";
 
 export interface SidePanelProps {
   isOpen: boolean;
@@ -11,6 +13,10 @@ export interface SidePanelProps {
   aggregate: Aggregate | null | undefined;
   apewisdom: ApewisdomEntry | null | undefined;
   stocktwits: StockTwitsEntry | null | undefined;
+  news: NewsItem[] | null | undefined;
+  earnings: EarningsDate | null | undefined;
+  finnhubKey: string | null | undefined;
+  onSaveKey: (key: string) => void;
   onClose: () => void;
   onTradingViewClick: () => void;
 }
@@ -108,7 +114,9 @@ function BarometerSection({ aggregate }: { aggregate: Aggregate | null | undefin
 }
 
 export function SidePanel({
-  isOpen, ticker, aggregate, apewisdom, stocktwits, onClose, onTradingViewClick,
+  isOpen, ticker, aggregate, apewisdom, stocktwits,
+  news, earnings, finnhubKey, onSaveKey,
+  onClose, onTradingViewClick,
 }: SidePanelProps) {
   if (!isOpen) return null;
 
@@ -121,6 +129,8 @@ export function SidePanel({
       <BarometerSection aggregate={aggregate} />
       <StockTwitsSection entry={stocktwits} />
       <ApewisdomSection entry={apewisdom} />
+      {finnhubKey ? <EarningsRow earnings={earnings} /> : null}
+      <NewsSection hasKey={!!finnhubKey} news={news} onSaveKey={onSaveKey} />
       <ExternalLinksBar ticker={ticker} onTradingViewClick={onTradingViewClick} />
     </aside>
   );

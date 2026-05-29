@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import type { Aggregate } from "../lib/barometer";
+import type { NewsItem, EarningsDate } from "../lib/finnhub";
 import { SidePanel } from "./SidePanel";
 
 afterEach(cleanup);
@@ -20,12 +21,21 @@ const fullAggregate: Aggregate = {
   trend: "flat",
 };
 
+const sampleNews: NewsItem[] = [
+  { headline: "Acme posts record quarter", source: "Reuters", url: "https://example.com/a", datetime: 1747699200, catalyst: "earnings" },
+];
+const sampleEarnings: EarningsDate = { date: "2026-06-02", epsEstimate: 2.15 };
+
 const defaults = {
   isOpen: true,
   ticker: "AAPL" as string | null | undefined,
   apewisdom: apewisdom() as ApewisdomEntry | null | undefined,
   stocktwits: stocktwits() as StockTwitsEntry | null | undefined,
   aggregate: fullAggregate as Aggregate | null | undefined,
+  news: sampleNews as NewsItem[] | null | undefined,
+  earnings: sampleEarnings as EarningsDate | null | undefined,
+  finnhubKey: "fk-test" as string | null | undefined,
+  onSaveKey: (_key: string) => {},
   onClose: () => {},
   onTradingViewClick: () => {},
 };
@@ -113,5 +123,24 @@ describe("<SidePanel />", () => {
     const { container } = render(<SidePanel {...defaults} aggregate={null} />);
     const section = container.querySelector(".ape-intel-panel__barometer")!;
     expect(section.textContent).toMatch(/No Barometer data/i);
+  });
+
+  it("renders the next-earnings row when a key is present", () => {
+    const { getByText } = render(<SidePanel {...defaults} />);
+    expect(getByText(/2026-06-02/)).toBeTruthy();
+    expect(getByText(/EPS est\. 2\.15/)).toBeTruthy();
+  });
+
+  it("renders the news headline as a link", () => {
+    const { getByText } = render(<SidePanel {...defaults} />);
+    expect(getByText("Acme posts record quarter")).toBeTruthy();
+  });
+
+  it("shows the key input and hides the earnings row when no key", () => {
+    const { getByPlaceholderText, queryByText } = render(
+      <SidePanel {...defaults} finnhubKey={null} />,
+    );
+    expect(getByPlaceholderText("Finnhub API key")).toBeTruthy();
+    expect(queryByText(/Next earnings/i)).toBeNull();
   });
 });
