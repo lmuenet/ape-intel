@@ -50,4 +50,25 @@ describe("computeBarometer", () => {
     expect(DEFAULT_CONFIG.stocktwitsConfidenceThreshold).toBe(20);
     expect(DEFAULT_CONFIG.tradestieConfidenceThreshold).toBe(50);
   });
+
+  it("labels bearish and very-bearish scores", () => {
+    const bearish = computeBarometer({ stocktwits: { bullish: 6, bearish: 14, totalMessages: 20 } });
+    // 2*6/20 - 1 = -0.4 → bearish
+    expect(bearish.score).toBeCloseTo(-0.4, 5);
+    expect(bearish.label).toBe("bearish");
+
+    const veryBearish = computeBarometer({ stocktwits: { bullish: 2, bearish: 18, totalMessages: 20 } });
+    // 2*2/20 - 1 = -0.8 → very-bearish
+    expect(veryBearish.score).toBeCloseTo(-0.8, 5);
+    expect(veryBearish.label).toBe("very-bearish");
+  });
+
+  it("sums confidence across two full sources to 2", () => {
+    const r = computeBarometer({
+      stocktwits: { bullish: 20, bearish: 0, totalMessages: 20 },
+      tradestie: { comments: 50, sentimentLabel: "Bullish", sentimentScore: 1 },
+    });
+    expect(r.totalConfidence).toBe(2);
+    expect(r.score).toBe(1);
+  });
 });
