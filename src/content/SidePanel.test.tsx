@@ -143,4 +143,13 @@ describe("<SidePanel />", () => {
     expect(getByPlaceholderText("Finnhub API key")).toBeTruthy();
     expect(queryByText(/Next earnings/i)).toBeNull();
   });
+
+  it("hides News and Earnings for an unresolved (uncovered) ticker", () => {
+    const { queryByText, queryByPlaceholderText } = render(
+      <SidePanel {...defaults} ticker={null} />,
+    );
+    expect(queryByText(/Next earnings/i)).toBeNull();
+    expect(queryByText("News")).toBeNull();
+    expect(queryByPlaceholderText("Finnhub API key")).toBeNull();
+  });
 });

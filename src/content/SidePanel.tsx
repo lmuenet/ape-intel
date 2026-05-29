@@ -129,8 +129,12 @@ export function SidePanel({
       <BarometerSection aggregate={aggregate} />
       <StockTwitsSection entry={stocktwits} />
       <ApewisdomSection entry={apewisdom} />
-      {finnhubKey ? <EarningsRow earnings={earnings} /> : null}
-      <NewsSection hasKey={!!finnhubKey} news={news} onSaveKey={onSaveKey} />
+      {ticker ? (
+        <>
+          {finnhubKey ? <EarningsRow earnings={earnings} /> : null}
+          <NewsSection hasKey={!!finnhubKey} news={news} onSaveKey={onSaveKey} />
+        </>
+      ) : null}
       <ExternalLinksBar ticker={ticker} onTradingViewClick={onTradingViewClick} />
     </aside>
   );

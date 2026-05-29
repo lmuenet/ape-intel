@@ -130,8 +130,8 @@ function onSaveKey(key: string): void {
   store.set(FINNHUB_KEY, key).then(() => {
     if (gen !== generation) return;
     finnhubKey = key;
-    paint();
     if (typeof currentTicker === "string") dispatchFinnhubLookups(currentTicker, gen);
+    else paint();
   });
 }
 
@@ -157,20 +157,20 @@ observeIsin(window, (isin) => {
       currentTicker = ticker;
       paint();
 
-      store.get<string>(FINNHUB_KEY).then((key) => {
-        if (gen !== generation) return;
-        finnhubKey = key ?? null;
-        paint();
-        if (ticker && key) dispatchFinnhubLookups(ticker, gen);
-      });
-
       if (ticker) {
         dispatchSentimentLookups(ticker, gen);
+        store.get<string>(FINNHUB_KEY).then((key) => {
+          if (gen !== generation) return;
+          finnhubKey = key ?? null;
+          paint();
+          if (key) dispatchFinnhubLookups(ticker, gen);
+        });
       } else {
         currentApewisdom = null;
         currentStockTwits = null;
         currentNews = null;
         currentEarnings = null;
+        finnhubKey = null;
         paint();
       }
     },
