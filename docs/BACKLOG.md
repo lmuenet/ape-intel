@@ -27,10 +27,8 @@ into a spec → plan → implementation cycle when it's picked up.
 
 ## Small hardening / polish (nice-to-have)
 
-- **Bare-JSON parse hardening** (`src/lib/strategy.ts`): the no-fence fallback
-  only parses when the whole trimmed text is valid JSON, so bare JSON followed by
-  trailing prose returns null. Realistic replies use the fenced ```json block
-  (robustly handled), so this is low priority. A balanced-brace substring
-  (`firstBrace..lastBrace`) would harden it.
+- ~~**Bare-JSON parse hardening**~~ — done 2026-05-30: the no-fence fallback now
+  takes the widest brace-delimited span (`firstBrace..lastBrace`), so a bare JSON
+  object surrounded by prose parses.
 - **"Ingested" timestamp shows UTC** (`StrategySection.tsx`): could render in the
   user's local timezone instead.

@@ -26,8 +26,11 @@ const KEYS: (keyof Strategy)[] = [
 function extractJson(text: string): string | null {
   const fenced = text.match(/```json\s*([\s\S]*?)```/i);
   if (fenced) return fenced[1].trim();
-  const trimmed = text.trim();
-  if (trimmed.startsWith("{")) return trimmed;
+  // No fence: take the widest brace-delimited span, so a bare JSON object still
+  // parses even with prose before/after it. JSON.parse validates the result.
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) return text.slice(firstBrace, lastBrace + 1);
   return null;
 }
 

@@ -36,6 +36,10 @@ describe("parseStrategy", () => {
     expect(parseStrategy('{ "direction": "short" }')).toEqual({ direction: "short" });
   });
 
+  it("parses a bare JSON object surrounded by prose (no fence)", () => {
+    expect(parseStrategy('Sure! { "direction": "long" } — hope that helps')).toEqual({ direction: "long" });
+  });
+
   it("returns null when there is no json and no bare object", () => {
     expect(parseStrategy("just some prose, nothing structured here")).toBeNull();
   });
