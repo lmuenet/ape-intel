@@ -38,7 +38,9 @@ new background message type is needed.
 - `src/lib/strategy.ts` (pure, fully unit-tested):
   - `Strategy` — all ten fields optional `string`:
     `direction`, `timeframe`, `targetPrice`, `stopLoss`, `leverage`,
-    `instruments`, `positionSizing`, `barometerCritique`, `rationale`, `risks`.
+    `instruments`, `positionSizing`, `barometerCritique`, `rationale`, `risks`,
+    plus `recommendation` and `conviction` (added by the prompt refinement — a
+    one-line call + a low/medium/high conviction, rendered prominently).
   - `parseStrategy(text: string): Strategy | null` — extract the first fenced
     ` ```json … ``` ` block (fallback: try the whole trimmed text as JSON),
     `JSON.parse`, require a non-array object, copy only the known keys, coerce

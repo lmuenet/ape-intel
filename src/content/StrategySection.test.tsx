@@ -14,6 +14,19 @@ const stored = (o: Partial<StoredStrategy> = {}): StoredStrategy => ({
 });
 
 describe("<StrategySection />", () => {
+  it("renders the recommendation headline and a conviction badge when present", () => {
+    const { getByText, container } = render(
+      <StrategySection
+        strategy={stored({ recommendation: "Small speculative long", conviction: "low" })}
+        parseError={false}
+        onSaveStrategy={vi.fn()}
+        onClearStrategy={vi.fn()}
+      />,
+    );
+    expect(getByText("Small speculative long")).toBeTruthy();
+    expect(container.querySelector('.ape-intel-strategy__conviction[data-conviction="low"]')).toBeTruthy();
+  });
+
   it("shows the paste form when there is no strategy", () => {
     const { getByPlaceholderText } = render(
       <StrategySection strategy={null} parseError={false} onSaveStrategy={vi.fn()} onClearStrategy={vi.fn()} />,

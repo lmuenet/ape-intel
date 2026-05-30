@@ -27,14 +27,21 @@ asks the external LLM to:
 - analyse the specific stock for a short-to-medium-term trade;
 - **critically challenge** our Barometer reading rather than trust it (bias,
   small samples, hype vs. fundamentals, staleness);
-- do its **own independent research** (web, news/filings, Reddit, StockTwits and
-  other portals) — our briefing is only a starting point;
+- do its **own independent research** across a broad range of sources (web,
+  news/filings, multiple subreddits, StockTwits, FinTwit/X, Seeking Alpha,
+  Substack analyst notes, reputable analysts/traders posting publicly), weighting
+  serious/track-recorded voices over anonymous hype — our briefing is only a
+  starting point;
 - return a concrete strategy: direction (long / short / stay-out), timeframe,
   target price(s) + stop, leverage suggestion + its risk, instruments
   (shares / options / leverage products) and rough position sizing;
-- mirror the strategy in a fenced `json` block (keys: `direction`, `timeframe`,
-  `targetPrice`, `stopLoss`, `leverage`, `instruments`, `positionSizing`,
-  `barometerCritique`, `rationale`, `risks`) for later re-ingestion.
+- **finish with a one-line Recommendation** (a single concrete call) plus a
+  **conviction** level (low / medium / high), framed as a suggested insight, not
+  advice;
+- mirror the strategy in a fenced `json` block (keys: `recommendation`,
+  `conviction`, `direction`, `timeframe`, `targetPrice`, `stopLoss`, `leverage`,
+  `instruments`, `positionSizing`, `barometerCritique`, `rationale`, `risks`) for
+  later re-ingestion.
 
 The prompt keeps a light "for my own informational research and personal
 decision-making, not regulated financial advice" framing.

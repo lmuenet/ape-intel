@@ -12,6 +12,11 @@ describe("parseStrategy", () => {
     });
   });
 
+  it("parses the recommendation and conviction fields", () => {
+    const out = parseStrategy(reply('{ "recommendation": "Small speculative long", "conviction": "low", "direction": "long" }'));
+    expect(out).toEqual({ recommendation: "Small speculative long", conviction: "low", direction: "long" });
+  });
+
   it("returns only the keys that are present (tolerates missing)", () => {
     const out = parseStrategy(reply('{ "direction": "short" }'));
     expect(out).toEqual({ direction: "short" });

@@ -101,10 +101,13 @@ A fixed constant prepended to the Briefing. It instructs the LLM to:
   (long / short / stay-out), timeframe, target price(s) + stop, leverage
   suggestion + its risk, instruments and rough position sizing, rationale and
   risks;
+- finish with a one-line **Recommendation** (a single concrete call) plus a
+  **conviction** level (low / medium / high), framed as a suggested insight;
 - and, at the **end**, emit a single fenced ` ```json ` block mirroring the
   strategy as a reliable parse target for later re-ingestion, with keys
-  `direction`, `timeframe`, `targetPrice`, `stopLoss`, `leverage`,
-  `instruments`, `positionSizing`, `barometerCritique`, `rationale`, `risks`.
+  `recommendation`, `conviction`, `direction`, `timeframe`, `targetPrice`,
+  `stopLoss`, `leverage`, `instruments`, `positionSizing`, `barometerCritique`,
+  `rationale`, `risks`.
 
 > **Updated by ADR-0005.** This replaces the original non-advice three-block
 > framing (community / news / watch-outs) for the export path. The prompt keeps

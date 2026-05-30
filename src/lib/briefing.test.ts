@@ -74,10 +74,17 @@ describe("EXPORT_PROMPT", () => {
     expect(p).toContain("barometer");
     expect(p).toContain("challenge");
   });
-  it("asks the model to do its own independent research", () => {
+  it("asks the model to do its own independent research across many sources", () => {
     const p = EXPORT_PROMPT.toLowerCase();
     expect(p).toContain("research");
     expect(p).toContain("reddit");
+    expect(p).toContain("seeking alpha");
+    expect(p).toContain("r/stocks");
+  });
+  it("asks for a concrete recommendation with a conviction level", () => {
+    const p = EXPORT_PROMPT.toLowerCase();
+    expect(p).toContain("recommendation");
+    expect(p).toContain("conviction");
   });
   it("requests concrete strategy parameters", () => {
     const p = EXPORT_PROMPT.toLowerCase();
@@ -88,6 +95,8 @@ describe("EXPORT_PROMPT", () => {
   });
   it("requests a fenced json block mirroring the strategy", () => {
     expect(EXPORT_PROMPT).toContain("```json");
+    expect(EXPORT_PROMPT).toContain("recommendation");
+    expect(EXPORT_PROMPT).toContain("conviction");
     expect(EXPORT_PROMPT).toContain("direction");
     expect(EXPORT_PROMPT).toContain("targetPrice");
     expect(EXPORT_PROMPT).toContain("leverage");

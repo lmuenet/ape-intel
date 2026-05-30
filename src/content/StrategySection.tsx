@@ -18,6 +18,13 @@ function directionKind(direction: string): "long" | "short" | "stay-out" {
   return "stay-out";
 }
 
+function convictionKind(conviction: string): "low" | "medium" | "high" {
+  const c = conviction.toLowerCase();
+  if (c.includes("high")) return "high";
+  if (c.includes("medium") || c.includes("mid")) return "medium";
+  return "low";
+}
+
 function StrategyForm({ parseError, onSaveStrategy }: { parseError: boolean; onSaveStrategy: (raw: string) => void }) {
   const onSubmit = (e: Event) => {
     e.preventDefault();
@@ -58,10 +65,22 @@ export function StrategySection({ strategy, parseError, onSaveStrategy, onClearS
       : !strategy ? <StrategyForm parseError={parseError} onSaveStrategy={onSaveStrategy} />
       : (
         <div class="ape-intel-strategy__view">
-          {strategy.direction ? (
-            <span class="ape-intel-strategy__direction" data-direction={directionKind(strategy.direction)}>
-              {strategy.direction}
-            </span>
+          {strategy.recommendation ? (
+            <p class="ape-intel-strategy__recommendation">{strategy.recommendation}</p>
+          ) : null}
+          {strategy.direction || strategy.conviction ? (
+            <div class="ape-intel-strategy__badges">
+              {strategy.direction ? (
+                <span class="ape-intel-strategy__direction" data-direction={directionKind(strategy.direction)}>
+                  {strategy.direction}
+                </span>
+              ) : null}
+              {strategy.conviction ? (
+                <span class="ape-intel-strategy__conviction" data-conviction={convictionKind(strategy.conviction)}>
+                  {strategy.conviction} conviction
+                </span>
+              ) : null}
+            </div>
           ) : null}
           <dl class="ape-intel-strategy__fields">
             <Field label="Timeframe" value={strategy.timeframe} />

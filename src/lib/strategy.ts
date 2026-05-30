@@ -1,4 +1,6 @@
 export interface Strategy {
+  recommendation?: string;
+  conviction?: string;
   direction?: string;
   timeframe?: string;
   targetPrice?: string;
@@ -16,6 +18,7 @@ export interface StoredStrategy extends Strategy {
 }
 
 const KEYS: (keyof Strategy)[] = [
+  "recommendation", "conviction",
   "direction", "timeframe", "targetPrice", "stopLoss", "leverage",
   "instruments", "positionSizing", "barometerCritique", "rationale", "risks",
 ];
