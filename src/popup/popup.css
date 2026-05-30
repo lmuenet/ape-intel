@@ -1,0 +1,53 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+}
+
+.ape-popup {
+  width: 380px;
+  max-height: 560px;
+  overflow-y: auto;
+  padding: 12px 14px 16px;
+  box-sizing: border-box;
+  font: 13px/1.45 system-ui, sans-serif;
+  background: #15171c;
+  color: #f3f3f3;
+}
+
+.ape-popup__brand {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 11px;
+  opacity: 0.6;
+  margin-bottom: 10px;
+}
+
+.ape-popup__section + .ape-popup__section {
+  margin-top: 18px;
+}
+
+.ape-popup__title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ape-popup__hint {
+  margin: 0;
+  padding: 8px 0;
+  opacity: 0.65;
+}
+
+.ape-popup__hint--error {
+  color: #ff9b9b;
+  opacity: 1;
+}
+
+.ape-popup__count {
+  margin: 0;
+  opacity: 0.8;
+}

@@ -3,9 +3,13 @@ import { defineManifest } from "@crxjs/vite-plugin";
 export default defineManifest({
   manifest_version: 3,
   name: "Ape Intel",
-  version: "0.0.10",
+  version: "0.0.11",
   description:
     "Community sentiment + news panel for supported broker security pages.",
+  action: {
+    default_title: "Ape Intel — Trending",
+    default_popup: "src/popup/index.html",
+  },
   browser_specific_settings: {
     gecko: {
       id: "ape-intel@lmueller.dev",
