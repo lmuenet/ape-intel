@@ -66,19 +66,31 @@ describe("assembleBriefing", () => {
 });
 
 describe("EXPORT_PROMPT", () => {
-  it("names the three analysis blocks", () => {
-    expect(EXPORT_PROMPT).toContain("What the community is saying");
-    expect(EXPORT_PROMPT).toContain("What the news is saying");
-    expect(EXPORT_PROMPT).toContain("What to watch out for");
+  it("asks for a trading strategy on this stock", () => {
+    expect(EXPORT_PROMPT.toLowerCase()).toContain("trading strategy");
   });
-  it("forbids buy/sell advice", () => {
-    expect(EXPORT_PROMPT.toLowerCase()).toContain("buy or sell");
+  it("tells the model to critically challenge our barometer", () => {
+    const p = EXPORT_PROMPT.toLowerCase();
+    expect(p).toContain("barometer");
+    expect(p).toContain("challenge");
   });
-  it("requests a fenced json block with the three keys", () => {
+  it("asks the model to do its own independent research", () => {
+    const p = EXPORT_PROMPT.toLowerCase();
+    expect(p).toContain("research");
+    expect(p).toContain("reddit");
+  });
+  it("requests concrete strategy parameters", () => {
+    const p = EXPORT_PROMPT.toLowerCase();
+    expect(p).toContain("long or short");
+    expect(p).toContain("timeframe");
+    expect(p).toContain("leverage");
+    expect(p).toContain("position sizing");
+  });
+  it("requests a fenced json block mirroring the strategy", () => {
     expect(EXPORT_PROMPT).toContain("```json");
-    expect(EXPORT_PROMPT).toContain("community");
-    expect(EXPORT_PROMPT).toContain("news");
-    expect(EXPORT_PROMPT).toContain("watchOuts");
+    expect(EXPORT_PROMPT).toContain("direction");
+    expect(EXPORT_PROMPT).toContain("targetPrice");
+    expect(EXPORT_PROMPT).toContain("leverage");
   });
 });
 
