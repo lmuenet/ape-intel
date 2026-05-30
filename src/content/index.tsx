@@ -12,6 +12,8 @@ import type { Aggregate } from "../lib/barometer";
 import type { EarningsDate, NewsItem } from "../lib/finnhub";
 import type {
   ApewisdomLookupMessage,
+  FavouriteHasMessage,
+  FavouriteToggleMessage,
   FinnhubEarningsLookupMessage,
   FinnhubNewsLookupMessage,
   StockTwitsLookupMessage,
@@ -54,6 +56,8 @@ let currentStockTwits: StockTwitsEntry | null | undefined = undefined;
 let currentNews: NewsItem[] | null | undefined = undefined;
 let currentEarnings: EarningsDate | null | undefined = undefined;
 let finnhubKey: string | null | undefined = undefined;
+let isFavourite = false;
+let showCapHint = false;
 
 // undefined while either sentiment/volume source is still loading; otherwise a
 // computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
@@ -87,9 +91,9 @@ function paint(): void {
         earnings={currentEarnings}
         finnhubKey={finnhubKey}
         onSaveKey={onSaveKey}
-        isFavourite={false}
-        showCapHint={false}
-        onToggleFavourite={() => {}}
+        isFavourite={isFavourite}
+        showCapHint={showCapHint}
+        onToggleFavourite={onToggleFavourite}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />
@@ -138,6 +142,24 @@ function onSaveKey(key: string): void {
   });
 }
 
+function onToggleFavourite(): void {
+  if (currentIsin === null || typeof currentTicker !== "string") return;
+  const gen = generation;
+  const isin = currentIsin;
+  const wasFavourite = isFavourite;
+  showCapHint = false;
+  send<boolean>({ type: "favourites:toggle", isin, ticker: currentTicker } satisfies FavouriteToggleMessage).then(
+    (nowFavourite) => {
+      if (gen !== generation) return;
+      isFavourite = nowFavourite;
+      // Adding was rejected by the cap when the state did not flip to true.
+      if (!wasFavourite && !nowFavourite) showCapHint = true;
+      paint();
+    },
+    (e) => { if (gen === generation) console.warn("[ape-intel] favourites toggle failed", e); },
+  );
+}
+
 observeIsin(window, (isin) => {
   generation += 1;
   const gen = generation;
@@ -149,6 +171,8 @@ observeIsin(window, (isin) => {
   currentNews = undefined;
   currentEarnings = undefined;
   finnhubKey = undefined;
+  isFavourite = false;
+  showCapHint = false;
   isChartOpen = false; // close chart on navigation
 
   if (!isin) { paint(); return; }
@@ -162,6 +186,10 @@ observeIsin(window, (isin) => {
 
       if (ticker) {
         dispatchSentimentLookups(ticker, gen);
+        send<boolean>({ type: "favourites:has", isin } satisfies FavouriteHasMessage).then(
+          (fav) => { if (gen === generation) { isFavourite = fav; paint(); } },
+          (e) => { if (gen === generation) console.warn("[ape-intel] favourites has failed", e); },
+        );
         store.get<string>(FINNHUB_KEY).then((key) => {
           if (gen !== generation) return;
           finnhubKey = key ?? null;
