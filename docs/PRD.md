@@ -67,7 +67,10 @@ multi-asset compare.
 ### Explicit non-goals
 
 Portfolio tracking, trade execution, push notifications, own backend, other
-brokers, Buy/Sell recommendations from the LLM, telemetry of any kind.
+brokers, telemetry of any kind. (The "no Buy/Sell recommendations from the LLM"
+non-goal was relaxed for the BYOK **export** path by **ADR-0005** — the export
+prompt now solicits an actionable trading strategy from the user's own LLM. The
+in-panel stance is decided when Step 7b is built.)
 
 > These non-goals bind **the extension**. A post-v1 *external* Claude Code
 > routine that consumes the extension's exported data (see §11) does not violate

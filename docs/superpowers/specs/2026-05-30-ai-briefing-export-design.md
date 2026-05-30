@@ -92,18 +92,24 @@ Fixed Markdown sections (always present, with explicit empty-state text):
 
 A fixed constant prepended to the Briefing. It instructs the LLM to:
 - act as a sober equity-research assistant, not an advisor;
-- produce three readable blocks: **What the community is saying**, **What the
-  news is saying**, **What to watch out for**;
-- give **no** buy/sell recommendation;
+- analyse the specific stock for a short-to-medium-term trade;
+- **critically challenge** our Barometer reading (bias, small samples, hype vs.
+  fundamentals, staleness) rather than trust it;
+- do its **own independent research** (web, news/filings, Reddit, StockTwits and
+  other portals) — the briefing is only a starting point;
+- return a concrete short-to-medium-term **trading strategy**: direction
+  (long / short / stay-out), timeframe, target price(s) + stop, leverage
+  suggestion + its risk, instruments and rough position sizing, rationale and
+  risks;
 - and, at the **end**, emit a single fenced ` ```json ` block mirroring the
-  same analysis as a reliable parse target for later re-ingestion:
-  ```json
-  { "community": "...", "news": "...", "watchOuts": "..." }
-  ```
+  strategy as a reliable parse target for later re-ingestion, with keys
+  `direction`, `timeframe`, `targetPrice`, `stopLoss`, `leverage`,
+  `instruments`, `positionSizing`, `barometerCritique`, `rationale`, `risks`.
 
-The non-advice framing lives in the prompt (for the external LLM). When the
-in-panel analysis is built later (7b), ADR-0002's non-advice disclaimer will be
-rendered above the response in the UI.
+> **Updated by ADR-0005.** This replaces the original non-advice three-block
+> framing (community / news / watch-outs) for the export path. The prompt keeps
+> a light "for my own informational research, not regulated advice" line. The
+> in-panel analysis stance (7b) is decided when 7b is built.
 
 ## 6. UI & clipboard
 
