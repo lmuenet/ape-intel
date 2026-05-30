@@ -3,7 +3,7 @@ import { defineManifest } from "@crxjs/vite-plugin";
 export default defineManifest({
   manifest_version: 3,
   name: "Ape Intel",
-  version: "0.0.11",
+  version: "0.0.12",
   description:
     "Community sentiment + news panel for supported broker security pages.",
   action: {

@@ -1,3 +1,5 @@
+import { extractJson } from "./json";
+
 export interface Strategy {
   recommendation?: string;
   conviction?: string;
@@ -22,17 +24,6 @@ const KEYS: (keyof Strategy)[] = [
   "direction", "timeframe", "targetPrice", "stopLoss", "leverage",
   "instruments", "positionSizing", "barometerCritique", "rationale", "risks",
 ];
-
-function extractJson(text: string): string | null {
-  const fenced = text.match(/```json\s*([\s\S]*?)```/i);
-  if (fenced) return fenced[1].trim();
-  // No fence: take the widest brace-delimited span, so a bare JSON object still
-  // parses even with prose before/after it. JSON.parse validates the result.
-  const firstBrace = text.indexOf("{");
-  const lastBrace = text.lastIndexOf("}");
-  if (firstBrace !== -1 && lastBrace > firstBrace) return text.slice(firstBrace, lastBrace + 1);
-  return null;
-}
 
 export function parseStrategy(text: string): Strategy | null {
   const json = extractJson(text);

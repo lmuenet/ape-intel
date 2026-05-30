@@ -43,4 +43,12 @@ describe("<TrendingRow />", () => {
     const { getByText } = render(<TrendingRow row={row({ mentions: 40, mentions24hAgo: 40 })} />);
     expect(getByText("→")).toBeTruthy();
   });
+
+  it("renders a verdict badge and thesis when a verdict is given", () => {
+    const { getByText } = render(
+      <TrendingRow row={row()} verdict={{ ticker: "TSLA", verdict: "noise", thesis: "meme pump" }} />,
+    );
+    expect(getByText("Noise")).toBeTruthy();
+    expect(getByText("meme pump")).toBeTruthy();
+  });
 });

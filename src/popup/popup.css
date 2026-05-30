@@ -83,11 +83,14 @@ body {
 }
 
 .ape-row {
+  padding: 7px 2px;
+}
+
+.ape-row__main {
   display: grid;
-  grid-template-columns: 22px 1fr auto auto;
+  grid-template-columns: 22px 1fr auto auto auto;
   align-items: center;
   gap: 8px;
-  padding: 7px 2px;
 }
 
 .ape-row__rank {
@@ -131,6 +134,92 @@ body {
 .ape-row__trend--up { color: #5fd08a; }
 .ape-row__trend--down { color: #ff8a8a; }
 .ape-row__trend--flat { opacity: 0.5; }
+
+.ape-row__thesis {
+  margin: 3px 0 0 30px;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.ape-verdict {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ape-verdict--signal { background: rgba(95, 208, 138, 0.18); color: #7ee2a4; }
+.ape-verdict--noise { background: rgba(255, 138, 138, 0.18); color: #ff9b9b; }
+.ape-verdict--watch { background: rgba(240, 200, 100, 0.18); color: #f0c864; }
+
+.ape-challenge {
+  margin-bottom: 10px;
+}
+
+.ape-challenge__copy {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ape-challenge__copy:hover { background: rgba(255, 255, 255, 0.08); }
+
+.ape-challenge__form {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ape-challenge__textarea {
+  flex: 1;
+  resize: vertical;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #0e1014;
+  color: inherit;
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.ape-challenge__apply {
+  align-self: flex-start;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: #2f6fed;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ape-challenge__summary {
+  margin: 6px 0 2px;
+}
+
+.ape-challenge__meta {
+  margin: 0;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.ape-challenge__clear {
+  border: 0;
+  background: none;
+  color: #9ec5ff;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
 
 .ape-fav {
   padding: 8px 2px;

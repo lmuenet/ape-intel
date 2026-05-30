@@ -83,4 +83,31 @@ describe("<App />", () => {
     fireEvent.click(await findByRole("button", { name: /TSLA/ }));
     expect(send).not.toHaveBeenCalledWith({ type: "finnhub:news", ticker: "TSLA" });
   });
+
+  it("applies a pasted challenge and overlays the verdict badge", async () => {
+    const saveChallenge = vi.fn().mockResolvedValue(undefined);
+    const { findByLabelText, getByRole, findByText } = render(
+      <App send={boardSend()} getHasFinnhubKey={noKey} loadChallenge={async () => null} saveChallenge={saveChallenge} />,
+    );
+    fireEvent.input(await findByLabelText(/paste/i), {
+      target: { value: '[{"ticker":"TSLA","verdict":"noise","thesis":"meme pump"}]' },
+    });
+    fireEvent.click(getByRole("button", { name: /apply/i }));
+    expect(await findByText("Noise")).toBeTruthy();
+    expect(await findByText("meme pump")).toBeTruthy();
+    expect(saveChallenge).toHaveBeenCalledTimes(1);
+  });
+
+  it("flags staleness when the stored tickers differ from the board", async () => {
+    const stored = {
+      summary: "s",
+      verdicts: [],
+      ingestedAt: "2026-05-31T08:00:00.000Z",
+      tickers: ["OLD"],
+    };
+    const { findByText } = render(
+      <App send={boardSend()} getHasFinnhubKey={noKey} loadChallenge={async () => stored} />,
+    );
+    expect(await findByText(/board updated/i)).toBeTruthy();
+  });
 });
