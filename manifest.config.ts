@@ -15,7 +15,7 @@ export default defineManifest({
       },
     },
   },
-  permissions: ["storage"],
+  permissions: ["storage", "alarms"],
   host_permissions: [
     "https://api.openfigi.com/*",
     "https://apewisdom.io/*",
