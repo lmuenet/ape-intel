@@ -5,6 +5,7 @@ import { fetchTickerFromOpenFigi } from "../lib/openfigi";
 import { fetchStockTwitsForTicker } from "../lib/stocktwits";
 import { fetchTradestieSnapshot } from "../lib/tradestie";
 import { createApewisdomService } from "./apewisdom-service";
+import { createFavouritesService } from "./favourites-service";
 import { createFinnhubService } from "./finnhub-service";
 import { createStockTwitsService } from "./stocktwits-service";
 import { createTradestieService } from "./tradestie-service";
@@ -12,6 +13,7 @@ import { handleMessage } from "./messages";
 
 const store = browserStorageKvStore(browser.storage.local);
 const apewisdom = createApewisdomService(store, () => fetchApewisdomSnapshot(fetch));
+const favourites = createFavouritesService(store);
 const tradestie = createTradestieService(store, () => fetchTradestieSnapshot(fetch));
 const stocktwits = createStockTwitsService(store, (ticker) => fetchStockTwitsForTicker(ticker, fetch));
 const finnhub = createFinnhubService(
@@ -28,5 +30,7 @@ browser.runtime.onMessage.addListener((message) =>
     lookupStockTwits: (ticker) => stocktwits.lookup(ticker),
     lookupFinnhubNews: (ticker) => finnhub.news(ticker),
     lookupFinnhubEarnings: (ticker) => finnhub.earnings(ticker),
+    toggleFavourite: (fav) => favourites.toggle(fav),
+    isFavourite: (isin) => favourites.has(isin),
   }),
 );

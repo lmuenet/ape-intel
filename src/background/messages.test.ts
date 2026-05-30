@@ -3,6 +3,7 @@ import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import type { TradestieEntry } from "../lib/tradestie";
 import type { NewsItem, EarningsDate } from "../lib/finnhub";
+import type { Favourite } from "../lib/favourites";
 import { handleMessage, type MessageHandlers } from "./messages";
 
 const handlers = (
@@ -14,6 +15,8 @@ const handlers = (
   lookupStockTwits: vi.fn(),
   lookupFinnhubNews: vi.fn(),
   lookupFinnhubEarnings: vi.fn(),
+  toggleFavourite: vi.fn(),
+  isFavourite: vi.fn(),
   ...overrides,
 });
 
@@ -74,6 +77,22 @@ describe("handleMessage", () => {
       handleMessage({ type: "finnhub:earnings", ticker: "AAPL" }, handlers({ lookupFinnhubEarnings })),
     ).resolves.toBe(date);
     expect(lookupFinnhubEarnings).toHaveBeenCalledWith("AAPL");
+  });
+
+  it("routes favourites:toggle with isin and ticker", async () => {
+    const toggleFavourite = vi.fn().mockResolvedValue(true);
+    await expect(
+      handleMessage({ type: "favourites:toggle", isin: "US1", ticker: "AAA" }, handlers({ toggleFavourite })),
+    ).resolves.toBe(true);
+    expect(toggleFavourite).toHaveBeenCalledWith({ isin: "US1", ticker: "AAA" } satisfies Favourite);
+  });
+
+  it("routes favourites:has", async () => {
+    const isFavourite = vi.fn().mockResolvedValue(false);
+    await expect(
+      handleMessage({ type: "favourites:has", isin: "US1" }, handlers({ isFavourite })),
+    ).resolves.toBe(false);
+    expect(isFavourite).toHaveBeenCalledWith("US1");
   });
 
   it("returns undefined for unknown / malformed messages", () => {
