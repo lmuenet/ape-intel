@@ -62,6 +62,26 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
+.ape-list__toggle {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ape-list__toggle:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ape-list__panel {
+  padding: 4px 2px 10px;
+}
+
 .ape-row {
   display: grid;
   grid-template-columns: 22px 1fr auto auto;
@@ -148,4 +168,73 @@ body {
 .ape-intel-spark__line {
   stroke: #6ea8fe;
   stroke-width: 1.5;
+}
+
+.ape-x {
+  font-size: 12px;
+}
+
+.ape-x__signals {
+  display: flex;
+  gap: 14px;
+  margin: 0 0 6px;
+}
+
+.ape-x__signals div {
+  display: flex;
+  flex-direction: column;
+}
+
+.ape-x__signals dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.5;
+}
+
+.ape-x__signals dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ape-x__stocktwits {
+  margin: 2px 0;
+  opacity: 0.8;
+}
+
+.ape-x__news {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ape-x__news a {
+  color: #9ec5ff;
+  text-decoration: none;
+}
+
+.ape-x__news-tag {
+  margin-left: 6px;
+  font-size: 10px;
+  opacity: 0.55;
+}
+
+.ape-x__earnings {
+  margin: 2px 0;
+  opacity: 0.8;
+}
+
+.ape-x__links {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.ape-x__links a {
+  color: #9ec5ff;
+  text-decoration: none;
+  font-size: 11px;
 }

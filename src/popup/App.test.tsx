@@ -1,10 +1,30 @@
-import { render, cleanup } from "@testing-library/preact";
+import { render, cleanup, fireEvent } from "@testing-library/preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { App } from "./App";
+import { App, type Send } from "./App";
 
 afterEach(cleanup);
 
 const pending = () => new Promise<never>(() => {});
+
+// A send mock that serves both boards plus per-ticker intel lookups.
+const boardSend = (): Send =>
+  (vi.fn(async (m: { type: string; ticker?: string }) => {
+    switch (m.type) {
+      case "trending:board":
+        return [
+          { ticker: "TSLA", name: "Tesla", rank: 1, mentions: 99, mentions24hAgo: 50 },
+          { ticker: "NVDA", name: "Nvidia", rank: 2, mentions: 80, mentions24hAgo: 70 },
+        ];
+      case "favourites:board":
+        return [];
+      case "stocktwits:lookup":
+        return { bullish: 1, bearish: 1, totalMessages: 2 };
+      default:
+        return null;
+    }
+  }) as unknown as Send);
+
+const noKey = async () => false;
 
 describe("<App />", () => {
   it("renders both section headings", () => {
@@ -35,5 +55,32 @@ describe("<App />", () => {
     const send = vi.fn().mockRejectedValue(new Error("boom"));
     const { findAllByText } = render(<App send={send} />);
     expect((await findAllByText(/couldn/i)).length).toBe(2);
+  });
+
+  it("expands a trending row on click and fetches its intel", async () => {
+    const send = boardSend();
+    const { findByRole } = render(<App send={send} getHasFinnhubKey={noKey} />);
+    const toggle = await findByRole("button", { name: /TSLA/ });
+    fireEvent.click(toggle);
+    expect(send).toHaveBeenCalledWith({ type: "stocktwits:lookup", ticker: "TSLA" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("keeps only one row open at a time", async () => {
+    const send = boardSend();
+    const { findByRole } = render(<App send={send} getHasFinnhubKey={noKey} />);
+    const tsla = await findByRole("button", { name: /TSLA/ });
+    const nvda = await findByRole("button", { name: /NVDA/ });
+    fireEvent.click(tsla);
+    fireEvent.click(nvda);
+    expect(tsla.getAttribute("aria-expanded")).toBe("false");
+    expect(nvda.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("does not fetch finnhub when no key is stored", async () => {
+    const send = boardSend();
+    const { findByRole } = render(<App send={send} getHasFinnhubKey={noKey} />);
+    fireEvent.click(await findByRole("button", { name: /TSLA/ }));
+    expect(send).not.toHaveBeenCalledWith({ type: "finnhub:news", ticker: "TSLA" });
   });
 });
