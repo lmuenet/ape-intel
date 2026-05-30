@@ -8,6 +8,7 @@ import { createTickerCache } from "../lib/ticker-cache";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import { aggregate as computeAggregate } from "../lib/barometer";
+import { buildClipboardPayload } from "../lib/briefing";
 import type { Aggregate } from "../lib/barometer";
 import type { EarningsDate, NewsItem } from "../lib/finnhub";
 import type { DailySnapshot } from "../lib/snapshot-history";
@@ -61,6 +62,7 @@ let finnhubKey: string | null | undefined = undefined;
 let isFavourite = false;
 let showCapHint = false;
 let currentHistory: DailySnapshot[] | null | undefined = undefined;
+let copyState: "idle" | "copied" | "error" = "idle";
 
 // undefined while either sentiment/volume source is still loading; otherwise a
 // computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
@@ -98,8 +100,8 @@ function paint(): void {
         showCapHint={showCapHint}
         onToggleFavourite={onToggleFavourite}
         history={currentHistory}
-        copyState="idle"
-        onCopyBriefing={() => {}}
+        copyState={copyState}
+        onCopyBriefing={onCopyBriefing}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />
@@ -157,6 +159,22 @@ function onSaveKey(key: string): void {
   });
 }
 
+function onCopyBriefing(): void {
+  if (typeof currentTicker !== "string") return;
+  const payload = buildClipboardPayload({
+    ticker: currentTicker,
+    aggregate: currentAggregate(),
+    apewisdom: currentApewisdom,
+    stocktwits: currentStockTwits,
+    news: currentNews,
+    earnings: currentEarnings,
+  });
+  navigator.clipboard.writeText(payload).then(
+    () => { copyState = "copied"; paint(); },
+    (e) => { console.warn("[ape-intel] clipboard write failed", e); copyState = "error"; paint(); },
+  );
+}
+
 function onToggleFavourite(): void {
   if (currentIsin === null || typeof currentTicker !== "string") return;
   const gen = generation;
@@ -191,6 +209,7 @@ observeIsin(window, (isin) => {
   isFavourite = false;
   showCapHint = false;
   currentHistory = undefined;
+  copyState = "idle";
   isChartOpen = false; // close chart on navigation
 
   if (!isin) { paint(); return; }
