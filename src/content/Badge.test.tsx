@@ -25,19 +25,30 @@ describe("<Badge />", () => {
     expect(container.querySelector(".ape-intel-badge__ticker")).toBeNull();
   });
 
-  it("renders as a button", () => {
+  it("renders a main button", () => {
     const { container } = render(<Badge isin="US0378331005" />);
-    expect(container.querySelector("button.ape-intel-badge")).toBeTruthy();
+    expect(container.querySelector("button.ape-intel-badge__main")).toBeTruthy();
   });
 
-  it("invokes onClick when clicked", () => {
+  it("invokes onClick when the main button is clicked", () => {
     const onClick = vi.fn();
     const { container } = render(
       <Badge isin="US0378331005" onClick={onClick} />,
     );
-    const button = container.querySelector("button.ape-intel-badge")!;
+    const button = container.querySelector("button.ape-intel-badge__main")!;
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("invokes onOpenDashboard from the dashboard icon, not onClick", () => {
+    const onClick = vi.fn();
+    const onOpenDashboard = vi.fn();
+    const { getByRole } = render(
+      <Badge isin="US0378331005" onClick={onClick} onOpenDashboard={onOpenDashboard} />,
+    );
+    fireEvent.click(getByRole("button", { name: /trending dashboard/i }));
+    expect(onOpenDashboard).toHaveBeenCalledTimes(1);
+    expect(onClick).not.toHaveBeenCalled();
   });
 
   it("renders the barometer label, buzz, and trend when aggregate is provided", () => {

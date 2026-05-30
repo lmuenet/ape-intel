@@ -4,22 +4,47 @@
   bottom: 16px;
   z-index: 2147483647;
   display: inline-flex;
+  align-items: stretch;
+  gap: 6px;
+  font: 12px/1.4 system-ui, sans-serif;
+}
+.ape-intel-badge__main {
+  display: inline-flex;
   flex-direction: column;
   gap: 2px;
   padding: 8px 12px;
   background: #111;
   color: #f3f3f3;
-  font: 12px/1.4 system-ui, sans-serif;
+  font: inherit;
   border: none;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   cursor: pointer;
   text-align: left;
 }
-.ape-intel-badge:hover {
+.ape-intel-badge__main:hover {
   background: #1a1a1a;
 }
-.ape-intel-badge:focus-visible {
+.ape-intel-badge__dash {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  padding: 0;
+  background: #111;
+  color: #f3f3f3;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+.ape-intel-badge__dash:hover {
+  background: #1a1a1a;
+  color: #4ade80;
+}
+.ape-intel-badge__main:focus-visible,
+.ape-intel-badge__dash:focus-visible {
   outline: 2px solid #4ade80;
   outline-offset: 2px;
 }
