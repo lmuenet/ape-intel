@@ -38,6 +38,8 @@ const defaults = {
   onSaveKey: (_key: string) => {},
   onClose: () => {},
   onTradingViewClick: () => {},
+  copyState: "idle" as "idle" | "copied" | "error",
+  onCopyBriefing: () => {},
   isFavourite: false,
   showCapHint: false,
   onToggleFavourite: () => {},
@@ -197,5 +199,27 @@ describe("<SidePanel />", () => {
   it("hides the momentum section when not a favourite", () => {
     const { queryByText } = render(<SidePanel {...defaults} isFavourite={false} />);
     expect(queryByText(/7-day momentum/i)).toBeNull();
+  });
+
+  it("renders the copy-briefing button when the ticker is resolved", () => {
+    const { container } = render(<SidePanel {...defaults} />);
+    expect(container.querySelector(".ape-intel-briefing__copy")).toBeTruthy();
+  });
+
+  it("hides the copy-briefing button when the ticker is unresolved", () => {
+    const { container } = render(<SidePanel {...defaults} ticker={null} />);
+    expect(container.querySelector(".ape-intel-briefing__copy")).toBeNull();
+  });
+
+  it("invokes onCopyBriefing when the button is clicked", () => {
+    const onCopyBriefing = vi.fn();
+    const { container } = render(<SidePanel {...defaults} onCopyBriefing={onCopyBriefing} />);
+    fireEvent.click(container.querySelector(".ape-intel-briefing__copy")!);
+    expect(onCopyBriefing).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a Copied! label when copyState is copied", () => {
+    const { getByText } = render(<SidePanel {...defaults} copyState="copied" />);
+    expect(getByText("Copied!")).toBeTruthy();
   });
 });

@@ -23,6 +23,8 @@ export interface SidePanelProps {
   showCapHint: boolean;
   onToggleFavourite: () => void;
   history: DailySnapshot[] | null | undefined;
+  copyState: "idle" | "copied" | "error";
+  onCopyBriefing: () => void;
   onClose: () => void;
   onTradingViewClick: () => void;
 }
@@ -122,7 +124,7 @@ function BarometerSection({ aggregate }: { aggregate: Aggregate | null | undefin
 export function SidePanel({
   isOpen, ticker, aggregate, apewisdom, stocktwits,
   news, earnings, finnhubKey, onSaveKey,
-  isFavourite, showCapHint, onToggleFavourite, history,
+  isFavourite, showCapHint, onToggleFavourite, history, copyState, onCopyBriefing,
   onClose, onTradingViewClick,
 }: SidePanelProps) {
   if (!isOpen) return null;
@@ -157,6 +159,14 @@ export function SidePanel({
         </>
       ) : null}
       {ticker && isFavourite ? <SparklineSection history={history} /> : null}
+      {ticker ? (
+        <section class="ape-intel-panel__source ape-intel-briefing">
+          <h3 class="ape-intel-panel__section-title">AI Briefing</h3>
+          <button type="button" class="ape-intel-briefing__copy" onClick={onCopyBriefing}>
+            {copyState === "copied" ? "Copied!" : copyState === "error" ? "Copy failed" : "Copy briefing for AI"}
+          </button>
+        </section>
+      ) : null}
       <ExternalLinksBar ticker={ticker} onTradingViewClick={onTradingViewClick} />
     </aside>
   );

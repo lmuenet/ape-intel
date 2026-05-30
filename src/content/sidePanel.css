@@ -209,3 +209,8 @@
 .ape-intel-spark__svg { display: block; }
 .ape-intel-spark__line { stroke: #4ade80; stroke-width: 2; }
 .ape-intel-spark__current { font-size: 12px; opacity: 0.8; }
+
+.ape-intel-briefing__copy {
+  padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;
+  background: #4ade80; color: #111; font-weight: 600; font-size: 12px;
+}

@@ -98,6 +98,8 @@ function paint(): void {
         showCapHint={showCapHint}
         onToggleFavourite={onToggleFavourite}
         history={currentHistory}
+        copyState="idle"
+        onCopyBriefing={() => {}}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />
