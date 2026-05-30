@@ -1,0 +1,39 @@
+/* Click-catcher backdrop: transparent (the popover is docked, not modal-dimmed)
+   but covers the viewport so a click anywhere outside the panel dismisses it. */
+.ape-dash {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646; /* just below the Badge */
+}
+
+.ape-dash__panel {
+  position: fixed;
+  right: 16px;
+  bottom: 64px; /* sits above the bottom-right Badge */
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.ape-dash__close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #f3f3f3;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ape-dash__close:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
