@@ -44,6 +44,7 @@ const defaults = {
   parseError: false,
   onSaveStrategy: (_raw: string) => {},
   onClearStrategy: () => {},
+  coverage: "covered" as import("../lib/coverage").Coverage,
   isFavourite: false,
   showCapHint: false,
   onToggleFavourite: () => {},
@@ -245,5 +246,19 @@ describe("<SidePanel />", () => {
       />,
     );
     expect(getByText("long")).toBeTruthy();
+  });
+
+  it("renders the coverage chip with label and detail", () => {
+    const { container, getByText } = render(<SidePanel {...defaults} coverage="thin" />);
+    const chip = container.querySelector(".ape-intel-panel__coverage");
+    expect(chip).toBeTruthy();
+    expect(chip!.getAttribute("data-coverage")).toBe("thin");
+    expect(getByText("Thin coverage")).toBeTruthy();
+    expect(getByText(/sources are quiet/i)).toBeTruthy();
+  });
+
+  it("hides the coverage chip when coverage is unknown", () => {
+    const { container } = render(<SidePanel {...defaults} coverage="unknown" />);
+    expect(container.querySelector(".ape-intel-panel__coverage")).toBeNull();
   });
 });

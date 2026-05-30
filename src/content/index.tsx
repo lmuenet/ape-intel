@@ -110,6 +110,7 @@ function paint(): void {
         parseError={strategyError}
         onSaveStrategy={onSaveStrategy}
         onClearStrategy={onClearStrategy}
+        coverage="unknown"
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />

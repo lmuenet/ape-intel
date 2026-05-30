@@ -10,6 +10,7 @@ import { SparklineSection } from "./Sparkline";
 import type { DailySnapshot } from "../lib/snapshot-history";
 import { StrategySection } from "./StrategySection";
 import type { StoredStrategy } from "../lib/strategy";
+import { COVERAGE_TEXT, COVERAGE_DETAIL, type Coverage } from "../lib/coverage";
 
 export interface SidePanelProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export interface SidePanelProps {
   parseError: boolean;
   onSaveStrategy: (raw: string) => void;
   onClearStrategy: () => void;
+  coverage: Coverage;
   onClose: () => void;
   onTradingViewClick: () => void;
 }
@@ -131,7 +133,7 @@ export function SidePanel({
   isOpen, ticker, aggregate, apewisdom, stocktwits,
   news, earnings, finnhubKey, onSaveKey,
   isFavourite, showCapHint, onToggleFavourite, history, copyState, onCopyBriefing,
-  strategy, parseError, onSaveStrategy, onClearStrategy,
+  strategy, parseError, onSaveStrategy, onClearStrategy, coverage,
   onClose, onTradingViewClick,
 }: SidePanelProps) {
   if (!isOpen) return null;
@@ -156,6 +158,12 @@ export function SidePanel({
         </div>
       </header>
       {ticker && showCapHint ? <p class="ape-intel-panel__cap-hint">Max 20 favourites.</p> : null}
+      {coverage !== "unknown" ? (
+        <p class="ape-intel-panel__coverage" data-coverage={coverage}>
+          <span class="ape-intel-panel__coverage-label">{COVERAGE_TEXT[coverage]}</span>
+          <span class="ape-intel-panel__coverage-detail">{COVERAGE_DETAIL[coverage]}</span>
+        </p>
+      ) : null}
       <BarometerSection aggregate={aggregate} />
       <StockTwitsSection entry={stocktwits} />
       <ApewisdomSection entry={apewisdom} />
