@@ -17,6 +17,9 @@ export interface SidePanelProps {
   earnings: EarningsDate | null | undefined;
   finnhubKey: string | null | undefined;
   onSaveKey: (key: string) => void;
+  isFavourite: boolean;
+  showCapHint: boolean;
+  onToggleFavourite: () => void;
   onClose: () => void;
   onTradingViewClick: () => void;
 }
@@ -116,6 +119,7 @@ function BarometerSection({ aggregate }: { aggregate: Aggregate | null | undefin
 export function SidePanel({
   isOpen, ticker, aggregate, apewisdom, stocktwits,
   news, earnings, finnhubKey, onSaveKey,
+  isFavourite, showCapHint, onToggleFavourite,
   onClose, onTradingViewClick,
 }: SidePanelProps) {
   if (!isOpen) return null;
@@ -124,8 +128,22 @@ export function SidePanel({
     <aside class="ape-intel-panel" aria-label="Ape Intel side panel">
       <header class="ape-intel-panel__header">
         <h2 class="ape-intel-panel__title">{ticker ?? "Resolving ticker…"}</h2>
-        <button type="button" class="ape-intel-panel__close" aria-label="Close side panel" onClick={onClose}>×</button>
+        <div class="ape-intel-panel__header-actions">
+          {ticker ? (
+            <button
+              type="button"
+              class="ape-intel-panel__star"
+              aria-pressed={isFavourite}
+              aria-label={isFavourite ? "Remove from favourites" : "Add to favourites"}
+              onClick={onToggleFavourite}
+            >
+              {isFavourite ? "★" : "☆"}
+            </button>
+          ) : null}
+          <button type="button" class="ape-intel-panel__close" aria-label="Close side panel" onClick={onClose}>×</button>
+        </div>
       </header>
+      {ticker && showCapHint ? <p class="ape-intel-panel__cap-hint">Max 20 favourites.</p> : null}
       <BarometerSection aggregate={aggregate} />
       <StockTwitsSection entry={stocktwits} />
       <ApewisdomSection entry={apewisdom} />

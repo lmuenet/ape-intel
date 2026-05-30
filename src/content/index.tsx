@@ -87,6 +87,9 @@ function paint(): void {
         earnings={currentEarnings}
         finnhubKey={finnhubKey}
         onSaveKey={onSaveKey}
+        isFavourite={false}
+        showCapHint={false}
+        onToggleFavourite={() => {}}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />

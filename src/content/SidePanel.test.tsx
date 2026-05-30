@@ -38,6 +38,9 @@ const defaults = {
   onSaveKey: (_key: string) => {},
   onClose: () => {},
   onTradingViewClick: () => {},
+  isFavourite: false,
+  showCapHint: false,
+  onToggleFavourite: () => {},
 };
 
 describe("<SidePanel />", () => {
@@ -151,5 +154,32 @@ describe("<SidePanel />", () => {
     expect(queryByText(/Next earnings/i)).toBeNull();
     expect(queryByText("News")).toBeNull();
     expect(queryByPlaceholderText("Finnhub API key")).toBeNull();
+  });
+
+  it("renders a star toggle when the ticker is resolved", () => {
+    const { container } = render(<SidePanel {...defaults} />);
+    expect(container.querySelector(".ape-intel-panel__star")).toBeTruthy();
+  });
+
+  it("hides the star when the ticker is unresolved", () => {
+    const { container } = render(<SidePanel {...defaults} ticker={null} />);
+    expect(container.querySelector(".ape-intel-panel__star")).toBeNull();
+  });
+
+  it("reflects favourite state via aria-pressed", () => {
+    const { container } = render(<SidePanel {...defaults} isFavourite />);
+    expect(container.querySelector(".ape-intel-panel__star")!.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("invokes onToggleFavourite when the star is clicked", () => {
+    const onToggleFavourite = vi.fn();
+    const { container } = render(<SidePanel {...defaults} onToggleFavourite={onToggleFavourite} />);
+    fireEvent.click(container.querySelector(".ape-intel-panel__star")!);
+    expect(onToggleFavourite).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a cap hint when showCapHint is true", () => {
+    const { getByText } = render(<SidePanel {...defaults} showCapHint />);
+    expect(getByText(/Max 20 favourites/i)).toBeTruthy();
   });
 });
