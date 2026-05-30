@@ -8,6 +8,7 @@ import { createTickerCache } from "../lib/ticker-cache";
 import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import { aggregate as computeAggregate } from "../lib/barometer";
+import { classifyCoverage, type Coverage } from "../lib/coverage";
 import { buildClipboardPayload } from "../lib/briefing";
 import { parseStrategy, type StoredStrategy } from "../lib/strategy";
 import type { Aggregate } from "../lib/barometer";
@@ -75,6 +76,14 @@ function currentAggregate(): Aggregate | undefined {
   return computeAggregate({ stocktwits: currentStockTwits, apewisdom: currentApewisdom });
 }
 
+function currentCoverage(): Coverage {
+  return classifyCoverage({
+    ticker: currentTicker,
+    apewisdom: currentApewisdom,
+    stocktwits: currentStockTwits,
+  });
+}
+
 let generation = 0;
 
 function paint(): void {
@@ -88,6 +97,7 @@ function paint(): void {
         isin={currentIsin}
         ticker={currentTicker}
         aggregate={currentAggregate()}
+        coverage={currentCoverage()}
         onClick={() => { isPanelOpen = !isPanelOpen; paint(); }}
       />
       <SidePanel
@@ -110,7 +120,7 @@ function paint(): void {
         parseError={strategyError}
         onSaveStrategy={onSaveStrategy}
         onClearStrategy={onClearStrategy}
-        coverage="unknown"
+        coverage={currentCoverage()}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />
