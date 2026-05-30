@@ -111,3 +111,41 @@ body {
 .ape-row__trend--up { color: #5fd08a; }
 .ape-row__trend--down { color: #ff8a8a; }
 .ape-row__trend--flat { opacity: 0.5; }
+
+.ape-fav {
+  padding: 8px 2px;
+}
+
+.ape-fav__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ape-fav__standing {
+  font-size: 11px;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ape-fav__quiet {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+.ape-fav__collecting {
+  padding: 4px 0 0;
+  font-size: 11px;
+}
+
+.ape-intel-spark__svg {
+  display: block;
+  margin-top: 4px;
+}
+
+.ape-intel-spark__line {
+  stroke: #6ea8fe;
+  stroke-width: 1.5;
+}

@@ -8,7 +8,7 @@ export interface SparklineSectionProps {
   history: DailySnapshot[] | null | undefined;
 }
 
-function Sparkline({ values }: { values: number[] }) {
+export function Sparkline({ values }: { values: number[] }) {
   return (
     <svg
       class="ape-intel-spark__svg"
