@@ -31,4 +31,17 @@ describe("createInMemoryKvStore", () => {
     expect(await store.get("x")).toBe(1);
     expect(await store.get("y")).toBeNull();
   });
+
+  it("removes a key so get returns undefined again", async () => {
+    const store = createInMemoryKvStore({ k: "v" });
+    expect(await store.get("k")).toBe("v");
+    await store.remove("k");
+    expect(await store.get("k")).toBeUndefined();
+  });
+
+  it("remove is a no-op for a missing key", async () => {
+    const store = createInMemoryKvStore();
+    await store.remove("missing");
+    expect(await store.get("missing")).toBeUndefined();
+  });
 });
