@@ -40,6 +40,10 @@ const defaults = {
   onTradingViewClick: () => {},
   copyState: "idle" as "idle" | "copied" | "error",
   onCopyBriefing: () => {},
+  strategy: null as import("../lib/strategy").StoredStrategy | null | undefined,
+  parseError: false,
+  onSaveStrategy: (_raw: string) => {},
+  onClearStrategy: () => {},
   isFavourite: false,
   showCapHint: false,
   onToggleFavourite: () => {},
@@ -221,5 +225,25 @@ describe("<SidePanel />", () => {
   it("shows a Copied! label when copyState is copied", () => {
     const { getByText } = render(<SidePanel {...defaults} copyState="copied" />);
     expect(getByText("Copied!")).toBeTruthy();
+  });
+
+  it("renders the AI Strategy paste form when the ticker is resolved", () => {
+    const { getByPlaceholderText } = render(<SidePanel {...defaults} />);
+    expect(getByPlaceholderText("Paste the AI's full answer here")).toBeTruthy();
+  });
+
+  it("hides the AI Strategy section when the ticker is unresolved", () => {
+    const { queryByText } = render(<SidePanel {...defaults} ticker={null} />);
+    expect(queryByText("AI Strategy")).toBeNull();
+  });
+
+  it("renders an ingested strategy's direction", () => {
+    const { getByText } = render(
+      <SidePanel
+        {...defaults}
+        strategy={{ direction: "long", timeframe: "2w", ingestedAt: "2026-05-30T14:00:00.000Z" }}
+      />,
+    );
+    expect(getByText("long")).toBeTruthy();
   });
 });

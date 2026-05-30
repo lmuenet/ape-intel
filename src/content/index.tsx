@@ -102,6 +102,10 @@ function paint(): void {
         history={currentHistory}
         copyState={copyState}
         onCopyBriefing={onCopyBriefing}
+        strategy={undefined}
+        parseError={false}
+        onSaveStrategy={() => {}}
+        onClearStrategy={() => {}}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />

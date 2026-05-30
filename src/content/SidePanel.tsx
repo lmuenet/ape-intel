@@ -8,6 +8,8 @@ import { NewsSection, EarningsRow } from "./NewsSection";
 import type { EarningsDate, NewsItem } from "../lib/finnhub";
 import { SparklineSection } from "./Sparkline";
 import type { DailySnapshot } from "../lib/snapshot-history";
+import { StrategySection } from "./StrategySection";
+import type { StoredStrategy } from "../lib/strategy";
 
 export interface SidePanelProps {
   isOpen: boolean;
@@ -25,6 +27,10 @@ export interface SidePanelProps {
   history: DailySnapshot[] | null | undefined;
   copyState: "idle" | "copied" | "error";
   onCopyBriefing: () => void;
+  strategy: StoredStrategy | null | undefined;
+  parseError: boolean;
+  onSaveStrategy: (raw: string) => void;
+  onClearStrategy: () => void;
   onClose: () => void;
   onTradingViewClick: () => void;
 }
@@ -125,6 +131,7 @@ export function SidePanel({
   isOpen, ticker, aggregate, apewisdom, stocktwits,
   news, earnings, finnhubKey, onSaveKey,
   isFavourite, showCapHint, onToggleFavourite, history, copyState, onCopyBriefing,
+  strategy, parseError, onSaveStrategy, onClearStrategy,
   onClose, onTradingViewClick,
 }: SidePanelProps) {
   if (!isOpen) return null;
@@ -166,6 +173,14 @@ export function SidePanel({
             {copyState === "copied" ? "Copied!" : copyState === "error" ? "Copy failed" : "Copy briefing for AI"}
           </button>
         </section>
+      ) : null}
+      {ticker ? (
+        <StrategySection
+          strategy={strategy}
+          parseError={parseError}
+          onSaveStrategy={onSaveStrategy}
+          onClearStrategy={onClearStrategy}
+        />
       ) : null}
       <ExternalLinksBar ticker={ticker} onTradingViewClick={onTradingViewClick} />
     </aside>
