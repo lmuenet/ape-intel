@@ -9,6 +9,7 @@ import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import { aggregate as computeAggregate } from "../lib/barometer";
 import { buildClipboardPayload } from "../lib/briefing";
+import { parseStrategy, type StoredStrategy } from "../lib/strategy";
 import type { Aggregate } from "../lib/barometer";
 import type { EarningsDate, NewsItem } from "../lib/finnhub";
 import type { DailySnapshot } from "../lib/snapshot-history";
@@ -25,6 +26,7 @@ import type {
 
 const HOST_ID = "ape-intel-host";
 const FINNHUB_KEY = "finnhub:apiKey";
+const STRATEGY_PREFIX = "strategy:";
 
 async function send<T>(message: unknown): Promise<T> {
   return (await browser.runtime.sendMessage(message)) as T;
@@ -63,6 +65,8 @@ let isFavourite = false;
 let showCapHint = false;
 let currentHistory: DailySnapshot[] | null | undefined = undefined;
 let copyState: "idle" | "copied" | "error" = "idle";
+let currentStrategy: StoredStrategy | null | undefined = undefined;
+let strategyError = false;
 
 // undefined while either sentiment/volume source is still loading; otherwise a
 // computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
@@ -102,10 +106,10 @@ function paint(): void {
         history={currentHistory}
         copyState={copyState}
         onCopyBriefing={onCopyBriefing}
-        strategy={undefined}
-        parseError={false}
-        onSaveStrategy={() => {}}
-        onClearStrategy={() => {}}
+        strategy={currentStrategy}
+        parseError={strategyError}
+        onSaveStrategy={onSaveStrategy}
+        onClearStrategy={onClearStrategy}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />
@@ -179,6 +183,35 @@ function onCopyBriefing(): void {
   );
 }
 
+function onSaveStrategy(raw: string): void {
+  if (currentIsin === null) return;
+  const gen = generation;
+  const isin = currentIsin;
+  const parsed = parseStrategy(raw);
+  if (!parsed) {
+    strategyError = true;
+    paint();
+    return;
+  }
+  const record: StoredStrategy = { ...parsed, ingestedAt: new Date().toISOString() };
+  strategyError = false;
+  currentStrategy = record;
+  paint();
+  store.set(`${STRATEGY_PREFIX}${isin}`, record).then(
+    () => {},
+    (e) => { if (gen === generation) console.warn("[ape-intel] strategy save failed", e); },
+  );
+}
+
+function onClearStrategy(): void {
+  if (currentIsin === null) return;
+  const isin = currentIsin;
+  currentStrategy = null;
+  strategyError = false;
+  paint();
+  store.remove(`${STRATEGY_PREFIX}${isin}`);
+}
+
 function onToggleFavourite(): void {
   if (currentIsin === null || typeof currentTicker !== "string") return;
   const gen = generation;
@@ -214,6 +247,8 @@ observeIsin(window, (isin) => {
   showCapHint = false;
   currentHistory = undefined;
   copyState = "idle";
+  currentStrategy = undefined;
+  strategyError = false;
   isChartOpen = false; // close chart on navigation
 
   if (!isin) { paint(); return; }
@@ -236,6 +271,11 @@ observeIsin(window, (isin) => {
           finnhubKey = key ?? null;
           paint();
           if (key) dispatchFinnhubLookups(ticker, gen);
+        });
+        store.get<StoredStrategy>(`${STRATEGY_PREFIX}${isin}`).then((s) => {
+          if (gen !== generation) return;
+          currentStrategy = s ?? null;
+          paint();
         });
       } else {
         currentApewisdom = null;
