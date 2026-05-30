@@ -55,3 +55,11 @@
 .ape-intel-badge__trend {
   opacity: 0.8;
 }
+
+.ape-intel-badge__coverage {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: #888; vertical-align: middle;
+}
+.ape-intel-badge__coverage[data-coverage="covered"] { background: #4ade80; }
+.ape-intel-badge__coverage[data-coverage="thin"] { background: #fbbf24; }
+.ape-intel-badge__coverage[data-coverage="uncovered"] { background: #888; }

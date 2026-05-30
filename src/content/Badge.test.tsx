@@ -61,4 +61,22 @@ describe("<Badge />", () => {
     const { container } = render(<Badge isin="US0378331005" ticker="AAPL" aggregate={null} />);
     expect(container.querySelector(".ape-intel-badge__barometer")).toBeNull();
   });
+
+  it("renders a coverage dot with the state and an aria-label", () => {
+    const { container } = render(<Badge isin="US0378331005" ticker="AAPL" coverage="covered" />);
+    const dot = container.querySelector(".ape-intel-badge__coverage");
+    expect(dot).toBeTruthy();
+    expect(dot!.getAttribute("data-coverage")).toBe("covered");
+    expect(dot!.getAttribute("aria-label")).toBe("Coverage: Covered");
+  });
+
+  it("omits the coverage dot when coverage is unknown", () => {
+    const { container } = render(<Badge isin="US0378331005" ticker="AAPL" coverage="unknown" />);
+    expect(container.querySelector(".ape-intel-badge__coverage")).toBeNull();
+  });
+
+  it("omits the coverage dot when coverage is not provided", () => {
+    const { container } = render(<Badge isin="US0378331005" ticker="AAPL" />);
+    expect(container.querySelector(".ape-intel-badge__coverage")).toBeNull();
+  });
 });
