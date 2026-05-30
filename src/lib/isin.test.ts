@@ -48,6 +48,44 @@ describe("parseIsinFromUrl", () => {
     ).toBeNull();
   });
 
+  it("extracts isin from a Smartbroker+ asset URL (path tail)", () => {
+    expect(
+      parseIsinFromUrl(
+        "https://app.smartbrokerplus.de/p/3453166001/assets/US53222K2050",
+      ),
+    ).toBe("US53222K2050");
+  });
+
+  it("extracts an ETF isin from a Smartbroker+ asset URL", () => {
+    expect(
+      parseIsinFromUrl(
+        "https://app.smartbrokerplus.de/p/3453166001/assets/IE00B4L5Y983",
+      ),
+    ).toBe("IE00B4L5Y983");
+  });
+
+  it("tolerates a trailing slash on a Smartbroker+ asset URL", () => {
+    expect(
+      parseIsinFromUrl(
+        "https://app.smartbrokerplus.de/p/3453166001/assets/US53222K2050/",
+      ),
+    ).toBe("US53222K2050");
+  });
+
+  it("returns null for a Smartbroker+ non-asset page", () => {
+    expect(
+      parseIsinFromUrl("https://app.smartbrokerplus.de/p/3453166001/portfolio"),
+    ).toBeNull();
+  });
+
+  it("returns null for a Smartbroker+ asset path with a malformed isin", () => {
+    expect(
+      parseIsinFromUrl(
+        "https://app.smartbrokerplus.de/p/3453166001/assets/not-an-isin",
+      ),
+    ).toBeNull();
+  });
+
   it("returns null for non-Scalable URLs", () => {
     expect(
       parseIsinFromUrl("https://example.com/broker/security?isin=US0378331005"),

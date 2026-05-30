@@ -4,14 +4,27 @@ Glossary of domain terms for this project. Implementation details belong elsewhe
 
 ## Purpose
 
-Firefox extension that augments a Scalable Capital asset page with community
-sentiment + news, so a user can form a pre-purchase opinion on an
-**Einzelaktie** without leaving the broker.
+Firefox extension that augments a supported **Broker**'s asset page with
+community sentiment + news, so a user can form a pre-purchase opinion on an
+**Einzelaktie** without leaving the broker. Scalable Capital was the first
+supported Broker; the design generalises to further brokers (Smartbroker+, …)
+via a Broker registry.
 
 ## Terms
 
+### Broker
+A trading platform whose security pages the extension augments. Each Broker is
+defined by a URL match and a way to extract the **ISIN** from its security-page
+URL — both held in a Broker registry, so adding a Broker is one registry entry
+plus one manifest content-script match. Brokers expose the ISIN in the URL (no
+DOM scraping): Scalable Capital as a query param
+(`de.scalable.capital/broker/security?isin=…`), Smartbroker+ as the last path
+segment (`app.smartbrokerplus.de/p/<portfolioId>/assets/<ISIN>`). A Broker that
+hid the ISIN from its URL would need a different, broker-specific extractor and
+is out of scope until one actually does.
+
 ### Asset
-A tradable security viewed on Scalable Capital. Identified primarily by
+A tradable security viewed on a supported **Broker**. Identified primarily by
 **ISIN**. May or may not have a useful **US-Ticker** mapping.
 
 ### Einzelaktie (Single Stock)
@@ -47,6 +60,20 @@ aggregate mention volume across sources, bucketed for the UI.
 ### Trend
 Direction of attention over the last 24h (mentions today vs. yesterday).
 A momentum signal, not a sentiment signal.
+
+### Trending Board
+A cross-Asset discovery view: the global "what is the community loudest about
+right now" list, ranked by mention volume. Distinct from **Trend** — Trend is
+*one* Asset's 24h momentum; the Trending Board ranks *many* Assets. Opened from
+the toolbar, independent of any **Broker** page (it is the extension's only
+non-broker-page surface). Its base ranking is the Apewisdom snapshot the
+extension already caches. A row can expand to show that Asset's full intel
+inline; it does not deep-link into a Broker (the ISIN→Broker-URL mapping is
+one-directional and Broker URLs are user-specific). An optional, explicitly
+user-triggered AI **Challenge** curates/contextualises the board; like the
+per-Asset strategy export it works by copy-out / paste-back (no automatic,
+keyed call). The in-extension Trending Board is the manual sibling of the
+post-v1 external "Morning Call" routine, not its replacement.
 
 ### Source
 A single upstream provider of community data: **Apewisdom**, **Tradestie**,
@@ -124,6 +151,13 @@ to a per-Asset 3-minute cooldown to prevent API-limit burn.
 
 - Portfolio monitoring or position tracking.
 - ETF holdings analysis / sector aggregation.
-- "Trending tickers across Reddit" discovery view. (Interesting follow-up,
-  not MVP.)
-- Trade execution or any write-action on Scalable.
+- Trade execution or any write-action on a Broker.
+
+Formerly non-goals, now planned (post-v1, audience still = author):
+
+- **Further Brokers** beyond Scalable (Smartbroker+ first) via the Broker
+  registry. Reversed because the author trades on more than one Broker. Stays
+  cheap as long as every Broker exposes the ISIN in its URL.
+- **Trending Board** — the cross-Asset discovery view. Now in scope as an
+  in-extension, toolbar-opened view built on the already-cached Apewisdom
+  snapshot.

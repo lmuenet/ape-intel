@@ -21,9 +21,13 @@ into a spec → plan → implementation cycle when it's picked up.
   when. The stored strategy already carries `ingestedAt`; the model name is not
   auto-detectable from a paste and would need user input. Sharing transport is
   unspecified.
-- **Trending overview** (market-wide hottest plays + favourites). Explicit v1
-  non-goal (CONTEXT.md / PRD §2); flagged in PRD §11 as the data foundation for
-  the post-v1 external "Morning Call" routine.
+- ~~**Trending overview**~~ — now accepted as the **Trending Board** in
+  **ADR-0007** (in-extension, toolbar popup, Apewisdom-driven, AI Challenge via
+  export/re-ingest). Still the manual sibling of the post-v1 external "Morning
+  Call" routine (PRD §11), not its replacement.
+- **Multi-broker** — accepted in **ADR-0006** (Smartbroker+ first, via a Broker
+  registry). Audience stays = author. Build order: multi-broker before the
+  Trending Board.
 
 ## Small hardening / polish (nice-to-have)
 
