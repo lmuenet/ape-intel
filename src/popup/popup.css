@@ -1,11 +1,3 @@
-:root {
-  color-scheme: light dark;
-}
-
-body {
-  margin: 0;
-}
-
 .ape-popup {
   width: 380px;
   max-height: 560px;

@@ -64,9 +64,11 @@ A momentum signal, not a sentiment signal.
 ### Trending Board
 A cross-Asset discovery view: the global "what is the community loudest about
 right now" list, ranked by mention volume. Distinct from **Trend** — Trend is
-*one* Asset's 24h momentum; the Trending Board ranks *many* Assets. Opened from
-the toolbar, independent of any **Broker** page (it is the extension's only
-non-broker-page surface). It has two parts: the market-wide trending list
+*one* Asset's 24h momentum; the Trending Board ranks *many* Assets. It is
+reachable two ways: as an in-page popover launched from the **Badge** (the
+primary entry, visible on any Broker page) and from the browser toolbar (a global
+fallback, reachable with no Broker page open). Both surfaces render the same
+board. It has two parts: the market-wide trending list
 (ranked by Apewisdom mentions) and a **Favourite** companion view showing each
 Favourite's current standing plus its 7-day momentum sparkline. Its base ranking
 is the Apewisdom snapshot the extension already caches. A row can expand to show
@@ -101,9 +103,12 @@ visibly in the panel but not as the headline element. Past earnings,
 dividends, splits, IPOs, insider trades: all out of scope.
 
 ### Badge
-The always-visible UI element on a Scalable security page. Bottom-right
+The always-visible UI element on a **Broker** security page. Bottom-right
 corner of the viewport, attached to `document.body`. Shows Barometer,
-Buzz, Trend. Click opens the Side Panel. See ADR-0003.
+Buzz, Trend. It is the extension's anchor and carries two actions: its main
+area opens the **Side Panel** (this Asset); a separate icon opens the
+**Trending Board** popover (market-wide). The two and the chart overlay are
+mutually exclusive — opening one closes the others. See ADR-0003, ADR-0008.
 
 ### Side Panel
 The on-demand drawer that holds the full panel content: News, Earnings

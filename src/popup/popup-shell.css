@@ -1,0 +1,10 @@
+/* Global resets for the toolbar-popup document only. Kept out of popup.css so
+   the board styles can be reused inside a Broker page (content script) without
+   restyling that page. */
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+}
