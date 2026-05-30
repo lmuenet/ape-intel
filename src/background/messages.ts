@@ -4,6 +4,7 @@ import type { StockTwitsEntry } from "../lib/stocktwits";
 import type { TradestieEntry } from "../lib/tradestie";
 import type { TickerFetcher } from "../lib/ticker-cache";
 import type { Favourite } from "../lib/favourites";
+import type { DailySnapshot } from "../lib/snapshot-history";
 
 export interface TickerLookupMessage { type: "ticker:lookup"; isin: string }
 export interface ApewisdomLookupMessage { type: "apewisdom:lookup"; ticker: string }
@@ -13,6 +14,7 @@ export interface FinnhubNewsLookupMessage { type: "finnhub:news"; ticker: string
 export interface FinnhubEarningsLookupMessage { type: "finnhub:earnings"; ticker: string }
 export interface FavouriteToggleMessage { type: "favourites:toggle"; isin: string; ticker: string }
 export interface FavouriteHasMessage { type: "favourites:has"; isin: string }
+export interface SnapshotHistoryMessage { type: "snapshot:history"; isin: string }
 
 export type ApewisdomLookup = (ticker: string) => Promise<ApewisdomEntry | null>;
 export type TradestieLookup = (ticker: string) => Promise<TradestieEntry | null>;
@@ -21,6 +23,7 @@ export type FinnhubNewsLookup = (ticker: string) => Promise<NewsItem[] | null>;
 export type FinnhubEarningsLookup = (ticker: string) => Promise<EarningsDate | null>;
 export type FavouriteToggle = (fav: Favourite) => Promise<boolean>;
 export type FavouriteHas = (isin: string) => Promise<boolean>;
+export type SnapshotHistoryLookup = (isin: string) => Promise<DailySnapshot[]>;
 
 export interface MessageHandlers {
   fetchTicker: TickerFetcher;
@@ -31,6 +34,7 @@ export interface MessageHandlers {
   lookupFinnhubEarnings: FinnhubEarningsLookup;
   toggleFavourite: FavouriteToggle;
   isFavourite: FavouriteHas;
+  getSnapshotHistory: SnapshotHistoryLookup;
 }
 
 type HasTicker = { type: string; ticker: string };
@@ -87,6 +91,7 @@ export function handleMessage(
   | Promise<NewsItem[] | null>
   | Promise<EarningsDate | null>
   | Promise<boolean>
+  | Promise<DailySnapshot[]>
   | undefined {
   if (isTickerLookup(message)) return handlers.fetchTicker(message.isin);
   if (isTypedTickerMessage(message, "apewisdom:lookup")) return handlers.lookupApewisdom(message.ticker);
@@ -96,5 +101,6 @@ export function handleMessage(
   if (isTypedTickerMessage(message, "finnhub:earnings")) return handlers.lookupFinnhubEarnings(message.ticker);
   if (isFavouriteToggle(message)) return handlers.toggleFavourite({ isin: message.isin, ticker: message.ticker });
   if (isTypedIsinMessage(message, "favourites:has")) return handlers.isFavourite(message.isin);
+  if (isTypedIsinMessage(message, "snapshot:history")) return handlers.getSnapshotHistory(message.isin);
   return undefined;
 }

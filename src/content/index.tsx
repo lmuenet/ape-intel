@@ -10,12 +10,14 @@ import type { StockTwitsEntry } from "../lib/stocktwits";
 import { aggregate as computeAggregate } from "../lib/barometer";
 import type { Aggregate } from "../lib/barometer";
 import type { EarningsDate, NewsItem } from "../lib/finnhub";
+import type { DailySnapshot } from "../lib/snapshot-history";
 import type {
   ApewisdomLookupMessage,
   FavouriteHasMessage,
   FavouriteToggleMessage,
   FinnhubEarningsLookupMessage,
   FinnhubNewsLookupMessage,
+  SnapshotHistoryMessage,
   StockTwitsLookupMessage,
   TickerLookupMessage,
 } from "../background/messages";
@@ -58,6 +60,7 @@ let currentEarnings: EarningsDate | null | undefined = undefined;
 let finnhubKey: string | null | undefined = undefined;
 let isFavourite = false;
 let showCapHint = false;
+let currentHistory: DailySnapshot[] | null | undefined = undefined;
 
 // undefined while either sentiment/volume source is still loading; otherwise a
 // computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
@@ -94,6 +97,7 @@ function paint(): void {
         isFavourite={isFavourite}
         showCapHint={showCapHint}
         onToggleFavourite={onToggleFavourite}
+        history={currentHistory}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; paint(); }}
       />
@@ -132,6 +136,15 @@ function dispatchFinnhubLookups(ticker: string, gen: number): void {
   );
 }
 
+function dispatchHistoryLookup(isin: string, gen: number): void {
+  currentHistory = undefined;
+  paint();
+  send<DailySnapshot[]>({ type: "snapshot:history", isin } satisfies SnapshotHistoryMessage).then(
+    (history) => { if (gen === generation) { currentHistory = history; paint(); } },
+    (e) => { if (gen === generation) { console.warn("[ape-intel] snapshot history lookup failed", e); currentHistory = null; paint(); } },
+  );
+}
+
 function onSaveKey(key: string): void {
   const gen = generation;
   store.set(FINNHUB_KEY, key).then(() => {
@@ -152,6 +165,8 @@ function onToggleFavourite(): void {
     (nowFavourite) => {
       if (gen !== generation) return;
       isFavourite = nowFavourite;
+      if (nowFavourite) dispatchHistoryLookup(isin, gen);
+      else currentHistory = undefined;
       // Adding was rejected by the cap when the state did not flip to true.
       if (!wasFavourite && !nowFavourite) showCapHint = true;
       paint();
@@ -173,6 +188,7 @@ observeIsin(window, (isin) => {
   finnhubKey = undefined;
   isFavourite = false;
   showCapHint = false;
+  currentHistory = undefined;
   isChartOpen = false; // close chart on navigation
 
   if (!isin) { paint(); return; }
@@ -187,7 +203,7 @@ observeIsin(window, (isin) => {
       if (ticker) {
         dispatchSentimentLookups(ticker, gen);
         send<boolean>({ type: "favourites:has", isin } satisfies FavouriteHasMessage).then(
-          (fav) => { if (gen === generation) { isFavourite = fav; paint(); } },
+          (fav) => { if (gen === generation) { isFavourite = fav; paint(); if (fav) dispatchHistoryLookup(isin, gen); } },
           (e) => { if (gen === generation) console.warn("[ape-intel] favourites has failed", e); },
         );
         store.get<string>(FINNHUB_KEY).then((key) => {

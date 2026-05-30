@@ -4,6 +4,7 @@ import type { StockTwitsEntry } from "../lib/stocktwits";
 import type { TradestieEntry } from "../lib/tradestie";
 import type { NewsItem, EarningsDate } from "../lib/finnhub";
 import type { Favourite } from "../lib/favourites";
+import type { DailySnapshot } from "../lib/snapshot-history";
 import { handleMessage, type MessageHandlers } from "./messages";
 
 const handlers = (
@@ -17,6 +18,7 @@ const handlers = (
   lookupFinnhubEarnings: vi.fn(),
   toggleFavourite: vi.fn(),
   isFavourite: vi.fn(),
+  getSnapshotHistory: vi.fn(),
   ...overrides,
 });
 
@@ -93,6 +95,15 @@ describe("handleMessage", () => {
       handleMessage({ type: "favourites:has", isin: "US1" }, handlers({ isFavourite })),
     ).resolves.toBe(false);
     expect(isFavourite).toHaveBeenCalledWith("US1");
+  });
+
+  it("routes snapshot:history", async () => {
+    const history: DailySnapshot[] = [{ date: "2026-05-30", mentions: 5, rank: 1 }];
+    const getSnapshotHistory = vi.fn().mockResolvedValue(history);
+    await expect(
+      handleMessage({ type: "snapshot:history", isin: "US1" }, handlers({ getSnapshotHistory })),
+    ).resolves.toBe(history);
+    expect(getSnapshotHistory).toHaveBeenCalledWith("US1");
   });
 
   it("returns undefined for unknown / malformed messages", () => {

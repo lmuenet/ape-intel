@@ -41,6 +41,7 @@ const defaults = {
   isFavourite: false,
   showCapHint: false,
   onToggleFavourite: () => {},
+  history: [] as import("../lib/snapshot-history").DailySnapshot[] | null | undefined,
 };
 
 describe("<SidePanel />", () => {
@@ -181,5 +182,20 @@ describe("<SidePanel />", () => {
   it("shows a cap hint when showCapHint is true", () => {
     const { getByText } = render(<SidePanel {...defaults} showCapHint />);
     expect(getByText(/Max 20 favourites/i)).toBeTruthy();
+  });
+
+  it("renders the momentum section when the asset is a favourite", () => {
+    const history = [
+      { date: "2026-05-29", mentions: 5, rank: 1 },
+      { date: "2026-05-30", mentions: 9, rank: 1 },
+    ];
+    const { getByText } = render(<SidePanel {...defaults} isFavourite history={history} />);
+    expect(getByText(/7-day momentum/i)).toBeTruthy();
+    expect(getByText(/9 mentions/i)).toBeTruthy();
+  });
+
+  it("hides the momentum section when not a favourite", () => {
+    const { queryByText } = render(<SidePanel {...defaults} isFavourite={false} />);
+    expect(queryByText(/7-day momentum/i)).toBeNull();
   });
 });

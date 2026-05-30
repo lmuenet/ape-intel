@@ -38,6 +38,7 @@ browser.runtime.onMessage.addListener((message) =>
     lookupFinnhubEarnings: (ticker) => finnhub.earnings(ticker),
     toggleFavourite: (fav) => favourites.toggle(fav),
     isFavourite: (isin) => favourites.has(isin),
+    getSnapshotHistory: (isin) => snapshot.history(isin),
   }),
 );
 

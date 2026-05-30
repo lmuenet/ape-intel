@@ -6,6 +6,8 @@ import type { Aggregate } from "../lib/barometer";
 import { ExternalLinksBar } from "./ExternalLinksBar";
 import { NewsSection, EarningsRow } from "./NewsSection";
 import type { EarningsDate, NewsItem } from "../lib/finnhub";
+import { SparklineSection } from "./Sparkline";
+import type { DailySnapshot } from "../lib/snapshot-history";
 
 export interface SidePanelProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ export interface SidePanelProps {
   isFavourite: boolean;
   showCapHint: boolean;
   onToggleFavourite: () => void;
+  history: DailySnapshot[] | null | undefined;
   onClose: () => void;
   onTradingViewClick: () => void;
 }
@@ -119,7 +122,7 @@ function BarometerSection({ aggregate }: { aggregate: Aggregate | null | undefin
 export function SidePanel({
   isOpen, ticker, aggregate, apewisdom, stocktwits,
   news, earnings, finnhubKey, onSaveKey,
-  isFavourite, showCapHint, onToggleFavourite,
+  isFavourite, showCapHint, onToggleFavourite, history,
   onClose, onTradingViewClick,
 }: SidePanelProps) {
   if (!isOpen) return null;
@@ -153,6 +156,7 @@ export function SidePanel({
           <NewsSection hasKey={!!finnhubKey} news={news} onSaveKey={onSaveKey} />
         </>
       ) : null}
+      {ticker && isFavourite ? <SparklineSection history={history} /> : null}
       <ExternalLinksBar ticker={ticker} onTradingViewClick={onTradingViewClick} />
     </aside>
   );
