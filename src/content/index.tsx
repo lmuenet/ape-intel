@@ -1,6 +1,7 @@
 import { render } from "preact";
 import { Badge } from "./Badge";
 import { ChartOverlay } from "./ChartOverlay";
+import { DashboardOverlay } from "./DashboardOverlay";
 import { SidePanel } from "./SidePanel";
 import { observeIsin } from "../lib/url-observer";
 import { browserStorageKvStore } from "../lib/kv-store";
@@ -55,6 +56,7 @@ function unmount(): void {
 
 let isPanelOpen = false;
 let isChartOpen = false;
+let isDashboardOpen = false;
 let currentIsin: string | null = null;
 let currentTicker: string | null | undefined = undefined;
 let currentApewisdom: ApewisdomEntry | null | undefined = undefined;
@@ -98,7 +100,8 @@ function paint(): void {
         ticker={currentTicker}
         aggregate={currentAggregate()}
         coverage={currentCoverage()}
-        onClick={() => { isPanelOpen = !isPanelOpen; paint(); }}
+        onClick={() => { isPanelOpen = !isPanelOpen; if (isPanelOpen) { isDashboardOpen = false; isChartOpen = false; } paint(); }}
+        onOpenDashboard={() => { isDashboardOpen = true; isPanelOpen = false; isChartOpen = false; paint(); }}
       />
       <SidePanel
         isOpen={isPanelOpen}
@@ -122,12 +125,16 @@ function paint(): void {
         onClearStrategy={onClearStrategy}
         coverage={currentCoverage()}
         onClose={() => { isPanelOpen = false; paint(); }}
-        onTradingViewClick={() => { isChartOpen = true; paint(); }}
+        onTradingViewClick={() => { isChartOpen = true; isDashboardOpen = false; paint(); }}
       />
       <ChartOverlay
         isOpen={isChartOpen}
         ticker={currentTicker}
         onClose={() => { isChartOpen = false; paint(); }}
+      />
+      <DashboardOverlay
+        isOpen={isDashboardOpen}
+        onClose={() => { isDashboardOpen = false; paint(); }}
       />
     </>,
     ensureHost(),
