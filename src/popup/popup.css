@@ -51,3 +51,63 @@ body {
   margin: 0;
   opacity: 0.8;
 }
+
+.ape-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ape-list__item {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.ape-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 2px;
+}
+
+.ape-row__rank {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.5;
+  font-size: 11px;
+  text-align: right;
+}
+
+.ape-row__id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ape-row__ticker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+}
+
+.ape-row__name {
+  font-size: 11px;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ape-row__mentions {
+  font-size: 11px;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.ape-row__trend {
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+.ape-row__trend--up { color: #5fd08a; }
+.ape-row__trend--down { color: #ff8a8a; }
+.ape-row__trend--flat { opacity: 0.5; }

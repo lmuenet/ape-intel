@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import type { TrendingRow } from "../background/apewisdom-service";
 import type { FavouriteRow } from "../background/favourites-board";
+import { TrendingSection } from "./TrendingSection";
 import "./popup.css";
 
 export type Send = <T>(message: unknown) => Promise<T>;
@@ -27,7 +28,7 @@ export function App({ send = defaultSend }: { send?: Send }) {
       <section class="ape-popup__section">
         <h2 class="ape-popup__title">Trending</h2>
         <Section state={trending} empty="Nothing trending right now.">
-          {(rows) => <p class="ape-popup__count">{rows.length} trending</p>}
+          {(rows) => <TrendingSection rows={rows} />}
         </Section>
       </section>
 
