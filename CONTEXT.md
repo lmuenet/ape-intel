@@ -66,14 +66,23 @@ A cross-Asset discovery view: the global "what is the community loudest about
 right now" list, ranked by mention volume. Distinct from **Trend** — Trend is
 *one* Asset's 24h momentum; the Trending Board ranks *many* Assets. Opened from
 the toolbar, independent of any **Broker** page (it is the extension's only
-non-broker-page surface). Its base ranking is the Apewisdom snapshot the
-extension already caches. A row can expand to show that Asset's full intel
-inline; it does not deep-link into a Broker (the ISIN→Broker-URL mapping is
-one-directional and Broker URLs are user-specific). An optional, explicitly
-user-triggered AI **Challenge** curates/contextualises the board; like the
-per-Asset strategy export it works by copy-out / paste-back (no automatic,
-keyed call). The in-extension Trending Board is the manual sibling of the
-post-v1 external "Morning Call" routine, not its replacement.
+non-broker-page surface). It has two parts: the market-wide trending list
+(ranked by Apewisdom mentions) and a **Favourite** companion view showing each
+Favourite's current standing plus its 7-day momentum sparkline. Its base ranking
+is the Apewisdom snapshot the extension already caches. A row can expand to show
+that Asset's full intel inline; it does not deep-link into a Broker, and a
+trending row cannot be made a **Favourite** from here — favouriting needs the
+**ISIN**, which the trending list (keyed only by **US-Ticker**) does not carry.
+Both limits stem from the one-directional ISIN↔Ticker↔Broker-URL mapping. An
+optional, explicitly
+user-triggered AI **Challenge** pre-filters the trending list — it triages each
+candidate as worth following, noise (a "dud" that does not deserve its trend),
+or one to watch, so the user can narrow the field before committing. Like the
+per-Asset strategy export it works by copy-out / paste-back (no automatic, keyed
+call). It is the first stage of a funnel: Challenge narrows the trending list,
+then the per-Asset strategy export does the deep dive on the chosen Asset. The
+in-extension Trending Board is the manual sibling of the post-v1 external
+"Morning Call" routine, not its replacement.
 
 ### Source
 A single upstream provider of community data: **Apewisdom**, **Tradestie**,

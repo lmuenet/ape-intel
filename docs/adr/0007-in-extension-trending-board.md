@@ -60,6 +60,42 @@ Build the **Trending Board** as an in-extension view, honouring "no backend":
   sibling* of the external "Morning Call" routine, not its replacement. The
   routine (scheduled, autonomous, journaling) remains the post-v1 direction.
 
+## Refinements (grilled 2026-05-30, consistent with the decision above)
+
+- **Two-section popup.** Top: the market-wide trending list (top ~15 by
+  Apewisdom mentions; each row shows rank, ticker, company name, mentions, and a
+  24h ↑/→/↓ arrow). Bottom: a Favourites companion showing each Favourite's
+  current standing + its 7-day momentum sparkline. Adding `name` to
+  `ApewisdomEntry` is required (the raw response has it; we currently drop it).
+  Old cached snapshots without `name` fall back to the ticker.
+- **Accordion expansion.** One row open at a time; expanding lazily fetches full
+  intel (Barometer/Buzz/Trend from StockTwits+Apewisdom; News/Earnings if a
+  Finnhub key is stored) through the existing ticker-keyed services + TTL caches.
+  Favourites rows expand the same way.
+- **No favouriting from the board.** Trending rows carry only a US-Ticker, and
+  favouriting needs an ISIN; the reverse mapping is not available. Favourites are
+  pinned on Broker pages only (same one-directional constraint as the deep-link).
+- **Challenge = pre-filter triage, trending list only.** The AI Challenge does
+  not annotate Favourites. Output JSON is a per-ticker list
+  `{ ticker, verdict: "signal" | "noise" | "watch", thesis, watch }` plus a
+  top-level `summary`. "noise" = a dud that does not deserve its trend; "signal"
+  = worth following; "watch" = keep an eye on. It is stage one of a funnel
+  (Challenge narrows → per-Asset strategy export deep-dives the chosen one).
+- **Popup auto-close forces persistence.** A `browser_action` popup closes on
+  blur, so the copy-out → external-LLM → paste-back round trip cannot complete in
+  one popup session. The Challenge result is therefore **stored** (with an
+  `ingestedAt` timestamp, like `StoredStrategy`) and re-rendered on reopen.
+- **Staleness handling.** Stored verdicts are overlaid onto the *current* board
+  by ticker; the header shows "Challenge as of <time>". Tickers that dropped out
+  show no verdict; new trending tickers stay neutral; if the Apewisdom snapshot
+  changed since the Challenge, a subtle "board updated — re-run Challenge" hint
+  appears. The board stays live; verdicts are not frozen to the old snapshot.
+- **New plumbing.** A message is needed to return the full ranked snapshot to the
+  popup (`apewisdom-service` currently exposes only per-ticker `lookup`), plus one
+  to return the Favourites list with their current standing. `extractJson` is
+  lifted out of `strategy.ts` into a shared helper and the trending parser accepts
+  a list (unlike `parseStrategy`, which rejects arrays).
+
 ## Consequences
 
 **Positive**
