@@ -5,6 +5,7 @@ import { fetchTickerFromOpenFigi } from "../lib/openfigi";
 import { fetchStockTwitsForTicker } from "../lib/stocktwits";
 import { fetchTradestieSnapshot } from "../lib/tradestie";
 import { createApewisdomService } from "./apewisdom-service";
+import { buildFavouritesBoard } from "./favourites-board";
 import { createFavouritesService } from "./favourites-service";
 import { createSnapshotService } from "./snapshot-service";
 import { createFinnhubService } from "./finnhub-service";
@@ -39,6 +40,13 @@ browser.runtime.onMessage.addListener((message) =>
     toggleFavourite: (fav) => favourites.toggle(fav),
     isFavourite: (isin) => favourites.has(isin),
     getSnapshotHistory: (isin) => snapshot.history(isin),
+    getTrendingBoard: () => apewisdom.board(),
+    getFavouritesBoard: () =>
+      buildFavouritesBoard({
+        getFavourites: () => favourites.get(),
+        lookupApewisdom: (ticker) => apewisdom.lookup(ticker),
+        getHistory: (isin) => snapshot.history(isin),
+      }),
   }),
 );
 

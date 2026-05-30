@@ -34,15 +34,34 @@ describe("fetchApewisdomSnapshot", () => {
     );
     expect(map.get("TSLA")).toEqual({
       rank: 1,
+      name: "TSLA",
       mentions: 99,
       mentions24hAgo: 89,
     });
     expect(map.get("NVDA")).toEqual({
       rank: 51,
+      name: "NVDA",
       mentions: 49,
       mentions24hAgo: 39,
     });
     expect(map.size).toBe(3);
+  });
+
+  it("leaves name undefined when the raw entry omits it", async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValueOnce(
+        okPage([{ rank: 1, ticker: "GME", mentions: 10, mentions_24h_ago: 5 }]),
+      );
+
+    const map = await fetchApewisdomSnapshot(fetchFn, 1);
+
+    expect(map.get("GME")).toEqual({
+      rank: 1,
+      name: undefined,
+      mentions: 10,
+      mentions24hAgo: 5,
+    });
   });
 
   it("defaults to 5 pages when no count is given", async () => {

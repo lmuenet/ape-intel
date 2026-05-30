@@ -5,6 +5,8 @@ import type { TradestieEntry } from "../lib/tradestie";
 import type { TickerFetcher } from "../lib/ticker-cache";
 import type { Favourite } from "../lib/favourites";
 import type { DailySnapshot } from "../lib/snapshot-history";
+import type { TrendingRow } from "./apewisdom-service";
+import type { FavouriteRow } from "./favourites-board";
 
 export interface TickerLookupMessage { type: "ticker:lookup"; isin: string }
 export interface ApewisdomLookupMessage { type: "apewisdom:lookup"; ticker: string }
@@ -15,6 +17,8 @@ export interface FinnhubEarningsLookupMessage { type: "finnhub:earnings"; ticker
 export interface FavouriteToggleMessage { type: "favourites:toggle"; isin: string; ticker: string }
 export interface FavouriteHasMessage { type: "favourites:has"; isin: string }
 export interface SnapshotHistoryMessage { type: "snapshot:history"; isin: string }
+export interface TrendingBoardMessage { type: "trending:board" }
+export interface FavouritesBoardMessage { type: "favourites:board" }
 
 export type ApewisdomLookup = (ticker: string) => Promise<ApewisdomEntry | null>;
 export type TradestieLookup = (ticker: string) => Promise<TradestieEntry | null>;
@@ -24,6 +28,8 @@ export type FinnhubEarningsLookup = (ticker: string) => Promise<EarningsDate | n
 export type FavouriteToggle = (fav: Favourite) => Promise<boolean>;
 export type FavouriteHas = (isin: string) => Promise<boolean>;
 export type SnapshotHistoryLookup = (isin: string) => Promise<DailySnapshot[]>;
+export type TrendingBoardLookup = () => Promise<TrendingRow[]>;
+export type FavouritesBoardLookup = () => Promise<FavouriteRow[]>;
 
 export interface MessageHandlers {
   fetchTicker: TickerFetcher;
@@ -35,6 +41,8 @@ export interface MessageHandlers {
   toggleFavourite: FavouriteToggle;
   isFavourite: FavouriteHas;
   getSnapshotHistory: SnapshotHistoryLookup;
+  getTrendingBoard: TrendingBoardLookup;
+  getFavouritesBoard: FavouritesBoardLookup;
 }
 
 type HasTicker = { type: string; ticker: string };
@@ -69,6 +77,10 @@ function isFavouriteToggle(v: unknown): v is FavouriteToggleMessage {
   );
 }
 
+function isTypedMessage<T extends string>(v: unknown, type: T): v is { type: T } {
+  return typeof v === "object" && v !== null && (v as { type?: unknown }).type === type;
+}
+
 function isTypedTickerMessage<T extends string>(
   v: unknown,
   type: T,
@@ -92,6 +104,8 @@ export function handleMessage(
   | Promise<EarningsDate | null>
   | Promise<boolean>
   | Promise<DailySnapshot[]>
+  | Promise<TrendingRow[]>
+  | Promise<FavouriteRow[]>
   | undefined {
   if (isTickerLookup(message)) return handlers.fetchTicker(message.isin);
   if (isTypedTickerMessage(message, "apewisdom:lookup")) return handlers.lookupApewisdom(message.ticker);
@@ -102,5 +116,7 @@ export function handleMessage(
   if (isFavouriteToggle(message)) return handlers.toggleFavourite({ isin: message.isin, ticker: message.ticker });
   if (isTypedIsinMessage(message, "favourites:has")) return handlers.isFavourite(message.isin);
   if (isTypedIsinMessage(message, "snapshot:history")) return handlers.getSnapshotHistory(message.isin);
+  if (isTypedMessage(message, "trending:board")) return handlers.getTrendingBoard();
+  if (isTypedMessage(message, "favourites:board")) return handlers.getFavouritesBoard();
   return undefined;
 }

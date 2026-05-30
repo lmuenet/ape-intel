@@ -3,6 +3,9 @@ const DEFAULT_PAGES = 5;
 
 export interface ApewisdomEntry {
   rank: number;
+  /** Company name from the raw feed. Optional: snapshots cached before this
+   *  field existed (and raw entries that omit it) have no name. */
+  name?: string;
   mentions: number;
   mentions24hAgo: number;
 }
@@ -17,6 +20,7 @@ export type FetchFn = (
 interface RawEntry {
   ticker: string;
   rank: number;
+  name?: string;
   mentions: number;
   mentions_24h_ago: number;
 }
@@ -39,6 +43,7 @@ export async function fetchApewisdomSnapshot(
     for (const raw of body.results ?? []) {
       map.set(raw.ticker, {
         rank: raw.rank,
+        name: raw.name,
         mentions: raw.mentions,
         mentions24hAgo: raw.mentions_24h_ago,
       });

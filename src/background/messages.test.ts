@@ -19,6 +19,8 @@ const handlers = (
   toggleFavourite: vi.fn(),
   isFavourite: vi.fn(),
   getSnapshotHistory: vi.fn(),
+  getTrendingBoard: vi.fn(),
+  getFavouritesBoard: vi.fn(),
   ...overrides,
 });
 
@@ -104,6 +106,24 @@ describe("handleMessage", () => {
       handleMessage({ type: "snapshot:history", isin: "US1" }, handlers({ getSnapshotHistory })),
     ).resolves.toBe(history);
     expect(getSnapshotHistory).toHaveBeenCalledWith("US1");
+  });
+
+  it("routes trending:board", async () => {
+    const rows = [{ ticker: "AAPL", name: "Apple", rank: 1, mentions: 9, mentions24hAgo: 5 }];
+    const getTrendingBoard = vi.fn().mockResolvedValue(rows);
+    await expect(
+      handleMessage({ type: "trending:board" }, handlers({ getTrendingBoard })),
+    ).resolves.toBe(rows);
+    expect(getTrendingBoard).toHaveBeenCalledTimes(1);
+  });
+
+  it("routes favourites:board", async () => {
+    const rows = [{ isin: "US1", ticker: "AAPL", standing: null, history: [] }];
+    const getFavouritesBoard = vi.fn().mockResolvedValue(rows);
+    await expect(
+      handleMessage({ type: "favourites:board" }, handlers({ getFavouritesBoard })),
+    ).resolves.toBe(rows);
+    expect(getFavouritesBoard).toHaveBeenCalledTimes(1);
   });
 
   it("returns undefined for unknown / malformed messages", () => {
