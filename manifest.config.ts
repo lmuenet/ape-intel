@@ -3,9 +3,9 @@ import { defineManifest } from "@crxjs/vite-plugin";
 export default defineManifest({
   manifest_version: 3,
   name: "Ape Intel",
-  version: "0.0.9",
+  version: "0.0.10",
   description:
-    "Community sentiment + news panel for Scalable Capital security pages.",
+    "Community sentiment + news panel for supported broker security pages.",
   browser_specific_settings: {
     gecko: {
       id: "ape-intel@lmueller.dev",
@@ -28,7 +28,14 @@ export default defineManifest({
   },
   content_scripts: [
     {
-      matches: ["https://de.scalable.capital/broker/security*"],
+      // Per-broker URL filtering happens in the Broker registry (src/lib/isin.ts).
+      // Scalable narrows to the security path; Smartbroker+ is an SPA with a
+      // variable /p/<portfolioId>/ segment, so we match the host broadly and let
+      // the registry + observeIsin pick out asset pages regardless of entry point.
+      matches: [
+        "https://de.scalable.capital/broker/security*",
+        "https://app.smartbrokerplus.de/*",
+      ],
       js: ["src/content/index.tsx"],
       run_at: "document_idle",
     },
