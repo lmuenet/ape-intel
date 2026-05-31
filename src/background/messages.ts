@@ -21,6 +21,8 @@ export interface SnapshotHistoryMessage { type: "snapshot:history"; isin: string
 export interface TrendingBoardMessage { type: "trending:board" }
 export interface FavouritesBoardMessage { type: "favourites:board" }
 export interface LogMessage { type: "log"; entry: LogEntry }
+export interface LogReadMessage { type: "log:read" }
+export interface LogClearMessage { type: "log:clear" }
 
 export type ApewisdomLookup = (ticker: string, force?: boolean) => Promise<ApewisdomEntry | null>;
 export type TradestieLookup = (ticker: string) => Promise<TradestieEntry | null>;
@@ -33,6 +35,8 @@ export type SnapshotHistoryLookup = (isin: string) => Promise<DailySnapshot[]>;
 export type TrendingBoardLookup = () => Promise<TrendingRow[]>;
 export type FavouritesBoardLookup = () => Promise<FavouriteRow[]>;
 export type AppendLog = (entry: LogEntry) => Promise<void>;
+export type ReadLog = () => Promise<LogEntry[]>;
+export type ClearLog = () => Promise<void>;
 
 export interface MessageHandlers {
   fetchTicker: TickerFetcher;
@@ -47,6 +51,8 @@ export interface MessageHandlers {
   getTrendingBoard: TrendingBoardLookup;
   getFavouritesBoard: FavouritesBoardLookup;
   appendLog: AppendLog;
+  readLog: ReadLog;
+  clearLog: ClearLog;
 }
 
 function isLogMessage(v: unknown): v is LogMessage {
@@ -119,6 +125,7 @@ export function handleMessage(
   | Promise<DailySnapshot[]>
   | Promise<TrendingRow[]>
   | Promise<FavouriteRow[]>
+  | Promise<LogEntry[]>
   | Promise<void>
   | undefined {
   if (isTickerLookup(message)) return handlers.fetchTicker(message.isin);
@@ -132,6 +139,8 @@ export function handleMessage(
   if (isTypedIsinMessage(message, "snapshot:history")) return handlers.getSnapshotHistory(message.isin);
   if (isTypedMessage(message, "trending:board")) return handlers.getTrendingBoard();
   if (isTypedMessage(message, "favourites:board")) return handlers.getFavouritesBoard();
+  if (isTypedMessage(message, "log:read")) return handlers.readLog();
+  if (isTypedMessage(message, "log:clear")) return handlers.clearLog();
   if (isLogMessage(message)) return handlers.appendLog(message.entry);
   return undefined;
 }

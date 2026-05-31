@@ -65,6 +65,8 @@ browser.runtime.onMessage.addListener((message) =>
         getHistory: (isin) => snapshot.history(isin),
       }),
     appendLog: (entry) => logService.append(entry),
+    readLog: () => logService.read(),
+    clearLog: () => logService.clear(),
   }),
 );
 

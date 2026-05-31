@@ -22,6 +22,8 @@ const handlers = (
   getTrendingBoard: vi.fn(),
   getFavouritesBoard: vi.fn(),
   appendLog: vi.fn(),
+  readLog: vi.fn(),
+  clearLog: vi.fn(),
   ...overrides,
 });
 
@@ -150,6 +152,19 @@ describe("handleMessage", () => {
     const appendLog = vi.fn().mockResolvedValue(undefined);
     await handleMessage({ type: "log", entry }, handlers({ appendLog }));
     expect(appendLog).toHaveBeenCalledWith(entry);
+  });
+
+  it("routes log:read to readLog", async () => {
+    const entries = [{ ts: 1, level: "warn" as const, context: "background" as const, message: "x" }];
+    const readLog = vi.fn().mockResolvedValue(entries);
+    await expect(handleMessage({ type: "log:read" }, handlers({ readLog }))).resolves.toBe(entries);
+    expect(readLog).toHaveBeenCalledTimes(1);
+  });
+
+  it("routes log:clear to clearLog", async () => {
+    const clearLog = vi.fn().mockResolvedValue(undefined);
+    await handleMessage({ type: "log:clear" }, handlers({ clearLog }));
+    expect(clearLog).toHaveBeenCalledTimes(1);
   });
 
   it("returns undefined for unknown / malformed messages", () => {
