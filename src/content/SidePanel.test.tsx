@@ -51,6 +51,8 @@ const defaults = {
   history: [] as import("../lib/snapshot-history").DailySnapshot[] | null | undefined,
   onRefresh: () => {},
   refreshDisabledUntil: null as number | null,
+  profile: { risk: "balanced", horizon: "swing" } as import("../lib/briefing").TradingProfile,
+  onProfileChange: (_p: import("../lib/briefing").TradingProfile) => {},
 };
 
 describe("<SidePanel />", () => {
@@ -291,5 +293,28 @@ describe("<SidePanel />", () => {
   it("hides the coverage chip when coverage is unknown", () => {
     const { container } = render(<SidePanel {...defaults} coverage="unknown" />);
     expect(container.querySelector(".ape-intel-panel__coverage")).toBeNull();
+  });
+});
+
+describe("<SidePanel /> trading-profile knobs", () => {
+  it("reflects the current profile in the selects", () => {
+    const { getByLabelText } = render(
+      <SidePanel {...defaults} profile={{ risk: "aggressive", horizon: "intraday" }} />,
+    );
+    expect((getByLabelText("Risk appetite") as HTMLSelectElement).value).toBe("aggressive");
+    expect((getByLabelText("Horizon") as HTMLSelectElement).value).toBe("intraday");
+  });
+
+  it("fires onProfileChange with the updated profile when a knob changes", () => {
+    const onProfileChange = vi.fn();
+    const { getByLabelText } = render(
+      <SidePanel
+        {...defaults}
+        profile={{ risk: "balanced", horizon: "swing" }}
+        onProfileChange={onProfileChange}
+      />,
+    );
+    fireEvent.change(getByLabelText("Horizon"), { target: { value: "position" } });
+    expect(onProfileChange).toHaveBeenCalledWith({ risk: "balanced", horizon: "position" });
   });
 });

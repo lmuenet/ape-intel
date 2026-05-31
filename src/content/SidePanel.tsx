@@ -11,6 +11,7 @@ import type { DailySnapshot } from "../lib/snapshot-history";
 import { StrategySection } from "./StrategySection";
 import type { StoredStrategy } from "../lib/strategy";
 import { COVERAGE_TEXT, COVERAGE_DETAIL, type Coverage } from "../lib/coverage";
+import type { TradingProfile, RiskAppetite, Horizon } from "../lib/briefing";
 
 export interface SidePanelProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ export interface SidePanelProps {
   history: DailySnapshot[] | null | undefined;
   copyState: "idle" | "copied" | "error";
   onCopyBriefing: () => void;
+  profile: TradingProfile;
+  onProfileChange: (profile: TradingProfile) => void;
   strategy: StoredStrategy | null | undefined;
   parseError: boolean;
   onSaveStrategy: (raw: string) => void;
@@ -144,6 +147,7 @@ export function SidePanel({
   isOpen, ticker, aggregate, apewisdom, stocktwits,
   news, earnings, finnhubKey, onSaveKey,
   isFavourite, showCapHint, onToggleFavourite, history, copyState, onCopyBriefing,
+  profile, onProfileChange,
   strategy, parseError, onSaveStrategy, onClearStrategy, coverage,
   onClose, onTradingViewClick, onRefresh, refreshDisabledUntil,
 }: SidePanelProps) {
@@ -200,6 +204,36 @@ export function SidePanel({
       {ticker ? (
         <section class="ape-intel-panel__source ape-intel-briefing">
           <h3 class="ape-intel-panel__section-title">AI Briefing</h3>
+          <div class="ape-intel-briefing__knobs">
+            <label class="ape-intel-briefing__knob">
+              <span>Risk</span>
+              <select
+                aria-label="Risk appetite"
+                value={profile.risk}
+                onChange={(e) =>
+                  onProfileChange({ ...profile, risk: (e.currentTarget as HTMLSelectElement).value as RiskAppetite })
+                }
+              >
+                <option value="conservative">Conservative</option>
+                <option value="balanced">Balanced</option>
+                <option value="aggressive">Aggressive</option>
+              </select>
+            </label>
+            <label class="ape-intel-briefing__knob">
+              <span>Horizon</span>
+              <select
+                aria-label="Horizon"
+                value={profile.horizon}
+                onChange={(e) =>
+                  onProfileChange({ ...profile, horizon: (e.currentTarget as HTMLSelectElement).value as Horizon })
+                }
+              >
+                <option value="intraday">Intraday</option>
+                <option value="swing">Swing</option>
+                <option value="position">Position</option>
+              </select>
+            </label>
+          </div>
           <button type="button" class="ape-intel-briefing__copy" onClick={onCopyBriefing}>
             {copyState === "copied" ? "Copied!" : copyState === "error" ? "Copy failed" : "Copy briefing for AI"}
           </button>

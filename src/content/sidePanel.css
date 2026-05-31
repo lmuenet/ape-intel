@@ -266,3 +266,19 @@
 .ape-intel-panel__coverage[data-coverage="uncovered"] { border-left-color: #888; }
 .ape-intel-panel__coverage-label { font-weight: 600; font-size: 12px; }
 .ape-intel-panel__coverage-detail { font-size: 11px; opacity: 0.7; }
+.ape-intel-briefing__knobs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ape-intel-briefing__knob {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+.ape-intel-briefing__knob select {
+  font: inherit;
+  padding: 2px 4px;
+}

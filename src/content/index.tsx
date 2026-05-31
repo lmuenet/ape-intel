@@ -10,7 +10,7 @@ import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import { aggregate as computeAggregate } from "../lib/barometer";
 import { classifyCoverage, type Coverage } from "../lib/coverage";
-import { buildClipboardPayload } from "../lib/briefing";
+import { buildClipboardPayload, DEFAULT_EXPORT_PROMPT, DEFAULT_PROFILE, type TradingProfile } from "../lib/briefing";
 import { parseStrategy, type StoredStrategy } from "../lib/strategy";
 import { createLogger, resolveLevel, LOG_LEVEL_KEY, type LogLevel } from "../lib/logger";
 import type { LogMessage } from "../background/messages";
@@ -94,6 +94,7 @@ let strategyError = false;
 // null when available. Persisted per-ISIN so the cooldown survives SPA nav.
 let refreshDisabledUntil: number | null = null;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+let currentProfile: TradingProfile = DEFAULT_PROFILE;
 
 // undefined while either sentiment/volume source is still loading; otherwise a
 // computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
@@ -143,6 +144,8 @@ function paint(): void {
         history={currentHistory}
         copyState={copyState}
         onCopyBriefing={onCopyBriefing}
+        profile={currentProfile}
+        onProfileChange={(p) => { currentProfile = p; paint(); }}
         strategy={currentStrategy}
         parseError={strategyError}
         onSaveStrategy={onSaveStrategy}
@@ -220,7 +223,7 @@ function onCopyBriefing(): void {
     stocktwits: currentStockTwits,
     news: currentNews,
     earnings: currentEarnings,
-  });
+  }, { basePrompt: DEFAULT_EXPORT_PROMPT, profile: currentProfile });
   navigator.clipboard.writeText(payload).then(
     () => { copyState = "copied"; paint(); },
     (e) => { log.warn("clipboard write failed", e); copyState = "error"; paint(); },
