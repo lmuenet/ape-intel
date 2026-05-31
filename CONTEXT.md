@@ -125,25 +125,44 @@ Two consumers, equal weight:
   ChatGPT, Gemini). This makes the Briefing valuable independently of
   BYOK; users without an API key still get the extension's analysis
   output, just not the in-panel answer.
-Fixed sections; depth toggleable between Medium and Deep dive. See
-ADR-0002.
+Fixed sections. In v1 the only consumer is the External one: there is no
+in-panel model call and no Medium/Deep depth toggle (see ADR-0010, which
+supersedes that part of ADR-0002).
 
 ### Export Prompt
-A short, predefined instruction block prepended to the Briefing on
-copy/export, so the user pastes one self-contained message into an
-external LLM. Editable in Settings. Default mirrors the structured
-output format of the in-panel AI Analysis (community / news / watch-outs).
+The instruction block prepended to the Briefing on copy/export, so the user
+pastes one self-contained message into an external LLM. The editable base
+template lives in Settings; on export it is combined with a generated
+**Trading Profile** block and the Briefing into one self-contained message.
+The default template casts the LLM as a skeptical analyst, asks it to weigh
+an explicit bull case against a bear case before concluding, and to emit a
+structured strategy (see ADR-0005).
+
+### Trading Profile
+The user's stated risk appetite (conservative / balanced / aggressive) and
+preferred horizon (intraday / swing / position), chosen per export in the
+Side Panel and remembered between exports. Injected into the **Export Prompt**
+as a *preference, not a command*: the LLM must first judge whether the profile
+fits the Asset before planning around it, and offer concrete levels only for a
+strategy it believes has an edge — otherwise "stay out", with no invented
+levels. See ADR-0010.
 
 ### AI Analysis
-The structured response a supported LLM produces from a Briefing.
-Three blocks: community, news, watch-outs. Never Buy/Sell. Triggered
-by an explicit button, never automatic. Costs the user — runs against
-their own API key.
+The structured strategy an LLM produces from the Briefing + Export Prompt.
+In v1 this is produced **copy-out only**: the user copies the message into an
+external LLM of their choice and pastes the answer back into the Side Panel,
+where it is parsed and rendered as the Strategy (schema per ADR-0005). No
+in-panel model call in v1 (ADR-0010). Triggered by explicit user action,
+never automatic.
 
 ### BYOK (Bring Your Own Key)
-The user's API key for Anthropic or OpenAI, stored plaintext in
-`browser.storage.local`. Disclosure of storage caveats happens at the
-moment of saving, not in upfront onboarding.
+A user's own API key for an in-panel model call. **Parked for v1** (ADR-0010):
+v1 stores no provider key and has no active-provider setting; the AI path is
+copy-out only. If in-panel analysis is ever revived, the key would be stored
+plaintext in `browser.storage.local`, with storage caveats disclosed at the
+moment of saving (per the original ADR-0002 stance), not in upfront onboarding.
+(The Finnhub data-source key is unrelated and remains live — it gates News and
+Earnings, not AI.)
 
 ### Favourite
 An Asset the user has explicitly pinned via a star icon in the Side Panel.

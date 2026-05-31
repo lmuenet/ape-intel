@@ -14,6 +14,11 @@ into a spec → plan → implementation cycle when it's picked up.
     adapters, cost, and an advice-stance ADR (does the in-panel path keep
     ADR-0002's non-advice disclaimer or follow ADR-0005's actionable stance?).
     Revisit when one-click in-panel analysis is worth that cost.
+  - *Confirmed parked 2026-05-31* in **ADR-0010**: v1 ships the AI path
+    copy-out only with a parameterised prompt (Trading Profile). In-panel BYOK,
+    the active-provider setting, and the Medium/Deep depth toggle are all out of
+    v1. If revived, BYOK returns as an *addition* to the copy-out path, not a
+    replacement.
 
 ## Future ideas (not yet scoped)
 
