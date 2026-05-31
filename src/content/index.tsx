@@ -29,6 +29,8 @@ import type {
 const HOST_ID = "ape-intel-host";
 const FINNHUB_KEY = "finnhub:apiKey";
 const STRATEGY_PREFIX = "strategy:";
+const REFRESH_PREFIX = "refresh:";
+const REFRESH_COOLDOWN_MS = 3 * 60 * 1000;
 
 async function send<T>(message: unknown): Promise<T> {
   return (await browser.runtime.sendMessage(message)) as T;
@@ -70,6 +72,10 @@ let currentHistory: DailySnapshot[] | null | undefined = undefined;
 let copyState: "idle" | "copied" | "error" = "idle";
 let currentStrategy: StoredStrategy | null | undefined = undefined;
 let strategyError = false;
+// Epoch ms until which manual refresh is on cooldown for the current Asset, or
+// null when available. Persisted per-ISIN so the cooldown survives SPA nav.
+let refreshDisabledUntil: number | null = null;
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
 // undefined while either sentiment/volume source is still loading; otherwise a
 // computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
@@ -126,6 +132,8 @@ function paint(): void {
         coverage={currentCoverage()}
         onClose={() => { isPanelOpen = false; paint(); }}
         onTradingViewClick={() => { isChartOpen = true; isDashboardOpen = false; paint(); }}
+        onRefresh={onRefresh}
+        refreshDisabledUntil={refreshDisabledUntil}
       />
       <ChartOverlay
         isOpen={isChartOpen}
@@ -141,26 +149,26 @@ function paint(): void {
   );
 }
 
-function dispatchSentimentLookups(ticker: string, gen: number): void {
-  send<ApewisdomEntry | null>({ type: "apewisdom:lookup", ticker } satisfies ApewisdomLookupMessage).then(
+function dispatchSentimentLookups(ticker: string, gen: number, force = false): void {
+  send<ApewisdomEntry | null>({ type: "apewisdom:lookup", ticker, force } satisfies ApewisdomLookupMessage).then(
     (entry) => { if (gen === generation) { currentApewisdom = entry; paint(); } },
     (e) => { if (gen === generation) { console.warn("[ape-intel] apewisdom lookup failed", e); currentApewisdom = null; paint(); } },
   );
-  send<StockTwitsEntry | null>({ type: "stocktwits:lookup", ticker } satisfies StockTwitsLookupMessage).then(
+  send<StockTwitsEntry | null>({ type: "stocktwits:lookup", ticker, force } satisfies StockTwitsLookupMessage).then(
     (entry) => { if (gen === generation) { currentStockTwits = entry; paint(); } },
     (e) => { if (gen === generation) { console.warn("[ape-intel] stocktwits lookup failed", e); currentStockTwits = null; paint(); } },
   );
 }
 
-function dispatchFinnhubLookups(ticker: string, gen: number): void {
+function dispatchFinnhubLookups(ticker: string, gen: number, force = false): void {
   currentNews = undefined;
   currentEarnings = undefined;
   paint();
-  send<NewsItem[] | null>({ type: "finnhub:news", ticker } satisfies FinnhubNewsLookupMessage).then(
+  send<NewsItem[] | null>({ type: "finnhub:news", ticker, force } satisfies FinnhubNewsLookupMessage).then(
     (items) => { if (gen === generation) { currentNews = items; paint(); } },
     (e) => { if (gen === generation) { console.warn("[ape-intel] finnhub news lookup failed", e); currentNews = null; paint(); } },
   );
-  send<EarningsDate | null>({ type: "finnhub:earnings", ticker } satisfies FinnhubEarningsLookupMessage).then(
+  send<EarningsDate | null>({ type: "finnhub:earnings", ticker, force } satisfies FinnhubEarningsLookupMessage).then(
     (date) => { if (gen === generation) { currentEarnings = date; paint(); } },
     (e) => { if (gen === generation) { console.warn("[ape-intel] finnhub earnings lookup failed", e); currentEarnings = null; paint(); } },
   );
@@ -230,6 +238,42 @@ function onClearStrategy(): void {
   store.remove(`${STRATEGY_PREFIX}${isin}`);
 }
 
+// Re-enable the refresh button exactly when the cooldown lapses (no per-second
+// ticking). Always clears any prior timer first.
+function scheduleRefreshReenable(): void {
+  if (refreshTimer !== null) { clearTimeout(refreshTimer); refreshTimer = null; }
+  if (refreshDisabledUntil === null) return;
+  const delay = refreshDisabledUntil - Date.now();
+  if (delay <= 0) { refreshDisabledUntil = null; return; }
+  refreshTimer = setTimeout(() => {
+    refreshTimer = null;
+    refreshDisabledUntil = null;
+    paint();
+  }, delay);
+}
+
+function onRefresh(): void {
+  if (currentIsin === null || typeof currentTicker !== "string") return;
+  if (refreshDisabledUntil !== null && Date.now() < refreshDisabledUntil) return;
+  const gen = generation;
+  const isin = currentIsin;
+  const ticker = currentTicker;
+
+  currentApewisdom = undefined;
+  currentStockTwits = undefined;
+  dispatchSentimentLookups(ticker, gen, true);
+  if (typeof finnhubKey === "string") dispatchFinnhubLookups(ticker, gen, true);
+
+  const now = Date.now();
+  refreshDisabledUntil = now + REFRESH_COOLDOWN_MS;
+  scheduleRefreshReenable();
+  store.set(`${REFRESH_PREFIX}${isin}`, now).then(
+    () => {},
+    (e) => { if (gen === generation) console.warn("[ape-intel] refresh timestamp save failed", e); },
+  );
+  paint();
+}
+
 function onToggleFavourite(): void {
   if (currentIsin === null || typeof currentTicker !== "string") return;
   const gen = generation;
@@ -268,9 +312,21 @@ observeIsin(window, (isin) => {
   currentStrategy = undefined;
   strategyError = false;
   isChartOpen = false; // close chart on navigation
+  if (refreshTimer !== null) { clearTimeout(refreshTimer); refreshTimer = null; }
+  refreshDisabledUntil = null;
 
   if (!isin) { paint(); return; }
   paint();
+
+  // Restore a still-running per-ISIN refresh cooldown so it survives SPA nav.
+  store.get<number>(`${REFRESH_PREFIX}${isin}`).then((ts) => {
+    if (gen !== generation) return;
+    if (typeof ts === "number" && Date.now() < ts + REFRESH_COOLDOWN_MS) {
+      refreshDisabledUntil = ts + REFRESH_COOLDOWN_MS;
+      scheduleRefreshReenable();
+      paint();
+    }
+  });
 
   tickerCache.get(isin).then(
     (ticker) => {
