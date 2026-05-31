@@ -10,7 +10,7 @@ import type { ApewisdomEntry } from "../lib/apewisdom";
 import type { StockTwitsEntry } from "../lib/stocktwits";
 import { aggregate as computeAggregate } from "../lib/barometer";
 import { classifyCoverage, type Coverage } from "../lib/coverage";
-import { buildClipboardPayload, DEFAULT_EXPORT_PROMPT, DEFAULT_PROFILE, type TradingProfile } from "../lib/briefing";
+import { buildClipboardPayload, normalizeProfile, DEFAULT_EXPORT_PROMPT, DEFAULT_PROFILE, type TradingProfile } from "../lib/briefing";
 import { parseStrategy, type StoredStrategy } from "../lib/strategy";
 import { createLogger, resolveLevel, LOG_LEVEL_KEY, type LogLevel } from "../lib/logger";
 import type { LogMessage } from "../background/messages";
@@ -33,6 +33,8 @@ const FINNHUB_KEY = "finnhub:apiKey";
 const STRATEGY_PREFIX = "strategy:";
 const REFRESH_PREFIX = "refresh:";
 const REFRESH_COOLDOWN_MS = 3 * 60 * 1000;
+const PROFILE_KEY = "export:profile";
+const PROMPT_KEY = "export:prompt";
 
 async function send<T>(message: unknown): Promise<T> {
   return (await browser.runtime.sendMessage(message)) as T;
@@ -95,6 +97,7 @@ let strategyError = false;
 let refreshDisabledUntil: number | null = null;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 let currentProfile: TradingProfile = DEFAULT_PROFILE;
+void store.get<unknown>(PROFILE_KEY).then((p) => { currentProfile = normalizeProfile(p); paint(); });
 
 // undefined while either sentiment/volume source is still loading; otherwise a
 // computed Aggregate (uncovered assets yield an "unavailable" barometer, not null).
@@ -145,7 +148,7 @@ function paint(): void {
         copyState={copyState}
         onCopyBriefing={onCopyBriefing}
         profile={currentProfile}
-        onProfileChange={(p) => { currentProfile = p; paint(); }}
+        onProfileChange={onProfileChange}
         strategy={currentStrategy}
         parseError={strategyError}
         onSaveStrategy={onSaveStrategy}
@@ -216,18 +219,30 @@ function onSaveKey(key: string): void {
 
 function onCopyBriefing(): void {
   if (typeof currentTicker !== "string") return;
-  const payload = buildClipboardPayload({
-    ticker: currentTicker,
-    aggregate: currentAggregate(),
-    apewisdom: currentApewisdom,
-    stocktwits: currentStockTwits,
-    news: currentNews,
-    earnings: currentEarnings,
-  }, { basePrompt: DEFAULT_EXPORT_PROMPT, profile: currentProfile });
-  navigator.clipboard.writeText(payload).then(
-    () => { copyState = "copied"; paint(); },
-    (e) => { log.warn("clipboard write failed", e); copyState = "error"; paint(); },
-  );
+  const ticker = currentTicker;
+  void store.get<string>(PROMPT_KEY).then((storedPrompt) => {
+    const payload = buildClipboardPayload(
+      {
+        ticker,
+        aggregate: currentAggregate(),
+        apewisdom: currentApewisdom,
+        stocktwits: currentStockTwits,
+        news: currentNews,
+        earnings: currentEarnings,
+      },
+      { basePrompt: storedPrompt ?? DEFAULT_EXPORT_PROMPT, profile: currentProfile },
+    );
+    navigator.clipboard.writeText(payload).then(
+      () => { copyState = "copied"; paint(); },
+      (e) => { log.warn("clipboard write failed", e); copyState = "error"; paint(); },
+    );
+  });
+}
+
+function onProfileChange(profile: TradingProfile): void {
+  currentProfile = profile;
+  paint();
+  void store.set(PROFILE_KEY, profile).catch((e) => log.warn("profile save failed", e));
 }
 
 function onSaveStrategy(raw: string): void {
