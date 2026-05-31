@@ -1,39 +1,56 @@
-/* Click-catcher backdrop: transparent (the popover is docked, not modal-dimmed)
-   but covers the viewport so a click anywhere outside the panel dismisses it. */
+/* Large centered modal (ADR-0009), built on the ChartOverlay form factor:
+   dimmed backdrop covering the viewport, a centered box, dismiss by Esc /
+   click-outside / × (mechanics live in DashboardOverlay.tsx). */
 .ape-dash {
   position: fixed;
   inset: 0;
-  z-index: 2147483646; /* just below the Badge */
+  z-index: 2147483647;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .ape-dash__panel {
-  position: fixed;
-  right: 16px;
-  bottom: 64px; /* sits above the bottom-right Badge */
-  max-height: 72vh;
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* The board App ships a fixed 380px width for the narrow toolbar popup; inside
+   the modal it should fill the panel so the container query flips it to two
+   columns. Scoped to the overlay so the popup keeps its 380px. */
+.ape-dash__panel .ape-popup {
+  width: 100%;
+  max-height: 100%;
+  flex: 1;
 }
 
 .ape-dash__close {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 8px;
+  right: 8px;
   z-index: 1;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border: 0;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.35);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.5);
   color: #f3f3f3;
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
 }
 
 .ape-dash__close:hover {
-  background: rgba(0, 0, 0, 0.6);
+  background: #4ade80;
+  color: #111;
 }
