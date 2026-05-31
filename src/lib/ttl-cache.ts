@@ -10,8 +10,13 @@ interface CachedEntry<T> {
   fetchedAt: number;
 }
 
+export interface TtlGetOptions {
+  /** Skip the freshness check: always refetch and overwrite the cached entry. */
+  force?: boolean;
+}
+
 export interface TtlCache<T> {
-  get(key: string): Promise<T>;
+  get(key: string, options?: TtlGetOptions): Promise<T>;
 }
 
 export function createTtlCache<T>(
@@ -22,10 +27,12 @@ export function createTtlCache<T>(
   const fullKey = (key: string): string => `${options.keyPrefix}:${key}`;
 
   return {
-    async get(key: string): Promise<T> {
-      const entry = await store.get<CachedEntry<T>>(fullKey(key));
-      if (entry !== undefined && Date.now() - entry.fetchedAt < options.ttlMs) {
-        return entry.value;
+    async get(key: string, getOptions?: TtlGetOptions): Promise<T> {
+      if (!getOptions?.force) {
+        const entry = await store.get<CachedEntry<T>>(fullKey(key));
+        if (entry !== undefined && Date.now() - entry.fetchedAt < options.ttlMs) {
+          return entry.value;
+        }
       }
       const fresh = await fetcher(key);
       await store.set(fullKey(key), { value: fresh, fetchedAt: Date.now() });

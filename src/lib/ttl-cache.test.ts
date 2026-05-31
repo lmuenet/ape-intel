@@ -51,6 +51,21 @@ describe("createTtlCache", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
+  it("refetches and overwrites when forced, even within the ttl", async () => {
+    const store = createInMemoryKvStore();
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce("first")
+      .mockResolvedValueOnce("second");
+    const cache = createTtlCache(store, fetcher, { ttlMs: TTL, keyPrefix: "p" });
+
+    await cache.get("a");
+    vi.advanceTimersByTime(TTL - 1); // still fresh
+    expect(await cache.get("a", { force: true })).toBe("second");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(await store.get("p:a")).toEqual({ value: "second", fetchedAt: Date.now() });
+  });
+
   it("caches null values just like real ones", async () => {
     const store = createInMemoryKvStore();
     const fetcher = vi.fn().mockResolvedValue(null);
