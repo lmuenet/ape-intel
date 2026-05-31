@@ -7,6 +7,7 @@ import type { Favourite } from "../lib/favourites";
 import type { DailySnapshot } from "../lib/snapshot-history";
 import type { TrendingRow } from "./apewisdom-service";
 import type { FavouriteRow } from "./favourites-board";
+import type { LogEntry } from "../lib/logger";
 
 export interface TickerLookupMessage { type: "ticker:lookup"; isin: string }
 export interface ApewisdomLookupMessage { type: "apewisdom:lookup"; ticker: string; force?: boolean }
@@ -19,6 +20,7 @@ export interface FavouriteHasMessage { type: "favourites:has"; isin: string }
 export interface SnapshotHistoryMessage { type: "snapshot:history"; isin: string }
 export interface TrendingBoardMessage { type: "trending:board" }
 export interface FavouritesBoardMessage { type: "favourites:board" }
+export interface LogMessage { type: "log"; entry: LogEntry }
 
 export type ApewisdomLookup = (ticker: string, force?: boolean) => Promise<ApewisdomEntry | null>;
 export type TradestieLookup = (ticker: string) => Promise<TradestieEntry | null>;
@@ -30,6 +32,7 @@ export type FavouriteHas = (isin: string) => Promise<boolean>;
 export type SnapshotHistoryLookup = (isin: string) => Promise<DailySnapshot[]>;
 export type TrendingBoardLookup = () => Promise<TrendingRow[]>;
 export type FavouritesBoardLookup = () => Promise<FavouriteRow[]>;
+export type AppendLog = (entry: LogEntry) => Promise<void>;
 
 export interface MessageHandlers {
   fetchTicker: TickerFetcher;
@@ -43,6 +46,16 @@ export interface MessageHandlers {
   getSnapshotHistory: SnapshotHistoryLookup;
   getTrendingBoard: TrendingBoardLookup;
   getFavouritesBoard: FavouritesBoardLookup;
+  appendLog: AppendLog;
+}
+
+function isLogMessage(v: unknown): v is LogMessage {
+  return (
+    typeof v === "object" && v !== null &&
+    (v as { type?: unknown }).type === "log" &&
+    typeof (v as { entry?: unknown }).entry === "object" &&
+    (v as { entry?: unknown }).entry !== null
+  );
 }
 
 type HasTicker = { type: string; ticker: string };
@@ -106,6 +119,7 @@ export function handleMessage(
   | Promise<DailySnapshot[]>
   | Promise<TrendingRow[]>
   | Promise<FavouriteRow[]>
+  | Promise<void>
   | undefined {
   if (isTickerLookup(message)) return handlers.fetchTicker(message.isin);
   if (isTypedTickerMessage(message, "apewisdom:lookup")) return handlers.lookupApewisdom(message.ticker, (message as ApewisdomLookupMessage).force);
@@ -118,5 +132,6 @@ export function handleMessage(
   if (isTypedIsinMessage(message, "snapshot:history")) return handlers.getSnapshotHistory(message.isin);
   if (isTypedMessage(message, "trending:board")) return handlers.getTrendingBoard();
   if (isTypedMessage(message, "favourites:board")) return handlers.getFavouritesBoard();
+  if (isLogMessage(message)) return handlers.appendLog(message.entry);
   return undefined;
 }

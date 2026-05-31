@@ -21,6 +21,7 @@ const handlers = (
   getSnapshotHistory: vi.fn(),
   getTrendingBoard: vi.fn(),
   getFavouritesBoard: vi.fn(),
+  appendLog: vi.fn(),
   ...overrides,
 });
 
@@ -144,6 +145,13 @@ describe("handleMessage", () => {
     expect(getFavouritesBoard).toHaveBeenCalledTimes(1);
   });
 
+  it("routes a log entry to the buffer", async () => {
+    const entry = { ts: 1, level: "warn" as const, context: "content" as const, message: "x" };
+    const appendLog = vi.fn().mockResolvedValue(undefined);
+    await handleMessage({ type: "log", entry }, handlers({ appendLog }));
+    expect(appendLog).toHaveBeenCalledWith(entry);
+  });
+
   it("returns undefined for unknown / malformed messages", () => {
     const h = handlers();
     expect(handleMessage(null, h)).toBeUndefined();
@@ -151,5 +159,6 @@ describe("handleMessage", () => {
     expect(handleMessage({ type: "other" }, h)).toBeUndefined();
     expect(handleMessage({ type: "ticker:lookup" }, h)).toBeUndefined();
     expect(handleMessage({ type: "tradestie:lookup", ticker: 5 }, h)).toBeUndefined();
+    expect(handleMessage({ type: "log" }, h)).toBeUndefined();
   });
 });
