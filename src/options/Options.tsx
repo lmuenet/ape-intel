@@ -48,7 +48,11 @@ export function Options({ send = defaultSend, store = defaultStore() }: OptionsP
 
   function onSaveKey(key: string): void { setFinnhubKey(key); void store.set(FINNHUB_KEY, key); }
   function onDeleteKey(): void { setFinnhubKey(""); void store.remove(FINNHUB_KEY); }
-  function onSavePrompt(text: string): void { setPrompt(text); setPromptCustom(true); void store.set(PROMPT_KEY, text); }
+  function onSavePrompt(text: string): void {
+    // A blank prompt would silently break exports; treat saving empty as a reset.
+    if (text.trim().length === 0) { onResetPrompt(); return; }
+    setPrompt(text); setPromptCustom(true); void store.set(PROMPT_KEY, text);
+  }
   function onResetPrompt(): void { setPrompt(DEFAULT_EXPORT_PROMPT); setPromptCustom(false); void store.remove(PROMPT_KEY); }
   function onLevelChange(l: LogLevel): void { setLevel(l); void store.set(LOG_LEVEL_KEY, l); }
   function onClearLogs(): void { send({ type: "log:clear" }).then(loadLogs, loadLogs); }

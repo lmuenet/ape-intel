@@ -1,4 +1,4 @@
-import { render, cleanup, waitFor } from "@testing-library/preact";
+import { render, cleanup, waitFor, fireEvent } from "@testing-library/preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Options } from "./Options";
 import { createInMemoryKvStore } from "../lib/kv-store";
@@ -22,5 +22,19 @@ describe("<Options />", () => {
     await waitFor(() =>
       expect((getByLabelText("Export prompt") as HTMLTextAreaElement).value.length).toBeGreaterThan(50),
     );
+  });
+
+  it("treats saving a blank prompt as a reset (removes the override)", async () => {
+    const store = createInMemoryKvStore({ "export:prompt": "MY CUSTOM PROMPT" });
+    const send = vi.fn().mockResolvedValue([]);
+    const { getByLabelText, getAllByText } = render(<Options store={store} send={send} />);
+    await waitFor(() =>
+      expect((getByLabelText("Export prompt") as HTMLTextAreaElement).value).toBe("MY CUSTOM PROMPT"),
+    );
+    fireEvent.input(getByLabelText("Export prompt"), { target: { value: "   " } });
+    // Two "Save" buttons exist (key + prompt); the prompt section renders last.
+    const saves = getAllByText("Save");
+    fireEvent.click(saves[saves.length - 1]);
+    await waitFor(async () => expect(await store.get("export:prompt")).toBeUndefined());
   });
 });
