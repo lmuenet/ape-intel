@@ -3,7 +3,16 @@ import type { Aggregate } from "./barometer";
 import type { ApewisdomEntry } from "./apewisdom";
 import type { StockTwitsEntry } from "./stocktwits";
 import type { EarningsDate, NewsItem } from "./finnhub";
-import { assembleBriefing, buildClipboardPayload, EXPORT_PROMPT, type BriefingInput } from "./briefing";
+import {
+  assembleBriefing,
+  buildClipboardPayload,
+  renderProfileBlock,
+  normalizeProfile,
+  DEFAULT_EXPORT_PROMPT,
+  DEFAULT_PROFILE,
+  type RiskAppetite,
+  type BriefingInput,
+} from "./briefing";
 
 const aggregate: Aggregate = {
   barometer: { score: 0.7, label: "very-bullish", contributingSources: 1, totalConfidence: 1, lowConfidence: true },
@@ -65,47 +74,92 @@ describe("assembleBriefing", () => {
   });
 });
 
-describe("EXPORT_PROMPT", () => {
+describe("DEFAULT_EXPORT_PROMPT", () => {
   it("asks for a trading strategy on this stock", () => {
-    expect(EXPORT_PROMPT.toLowerCase()).toContain("trading strategy");
+    expect(DEFAULT_EXPORT_PROMPT.toLowerCase()).toContain("trading strategy");
   });
   it("tells the model to critically challenge our barometer", () => {
-    const p = EXPORT_PROMPT.toLowerCase();
+    const p = DEFAULT_EXPORT_PROMPT.toLowerCase();
     expect(p).toContain("barometer");
     expect(p).toContain("challenge");
   });
   it("asks the model to do its own independent research across many sources", () => {
-    const p = EXPORT_PROMPT.toLowerCase();
+    const p = DEFAULT_EXPORT_PROMPT.toLowerCase();
     expect(p).toContain("research");
     expect(p).toContain("reddit");
     expect(p).toContain("seeking alpha");
     expect(p).toContain("r/stocks");
   });
+  it("tells the model to build a bull case and a bear case before deciding", () => {
+    const p = DEFAULT_EXPORT_PROMPT.toLowerCase();
+    expect(p).toContain("bull case");
+    expect(p).toContain("bear case");
+  });
   it("asks for a concrete recommendation with a conviction level", () => {
-    const p = EXPORT_PROMPT.toLowerCase();
+    const p = DEFAULT_EXPORT_PROMPT.toLowerCase();
     expect(p).toContain("recommendation");
     expect(p).toContain("conviction");
   });
   it("requests concrete strategy parameters", () => {
-    const p = EXPORT_PROMPT.toLowerCase();
+    const p = DEFAULT_EXPORT_PROMPT.toLowerCase();
     expect(p).toContain("long or short");
     expect(p).toContain("timeframe");
     expect(p).toContain("leverage");
     expect(p).toContain("position sizing");
   });
   it("requests a fenced json block mirroring the strategy", () => {
-    expect(EXPORT_PROMPT).toContain("```json");
-    expect(EXPORT_PROMPT).toContain("recommendation");
-    expect(EXPORT_PROMPT).toContain("conviction");
-    expect(EXPORT_PROMPT).toContain("direction");
-    expect(EXPORT_PROMPT).toContain("targetPrice");
-    expect(EXPORT_PROMPT).toContain("leverage");
+    expect(DEFAULT_EXPORT_PROMPT).toContain("```json");
+    expect(DEFAULT_EXPORT_PROMPT).toContain("recommendation");
+    expect(DEFAULT_EXPORT_PROMPT).toContain("conviction");
+    expect(DEFAULT_EXPORT_PROMPT).toContain("direction");
+    expect(DEFAULT_EXPORT_PROMPT).toContain("targetPrice");
+    expect(DEFAULT_EXPORT_PROMPT).toContain("leverage");
+  });
+});
+
+describe("DEFAULT_PROFILE", () => {
+  it("is balanced risk on a swing horizon", () => {
+    expect(DEFAULT_PROFILE).toEqual({ risk: "balanced", horizon: "swing" });
+  });
+});
+
+describe("normalizeProfile", () => {
+  it("passes valid profiles through unchanged", () => {
+    expect(normalizeProfile({ risk: "aggressive", horizon: "position" })).toEqual({
+      risk: "aggressive",
+      horizon: "position",
+    });
+  });
+  it("replaces invalid or missing fields with defaults", () => {
+    expect(normalizeProfile({ risk: "nope" })).toEqual(DEFAULT_PROFILE);
+    expect(normalizeProfile(undefined)).toEqual(DEFAULT_PROFILE);
+    expect(normalizeProfile(null)).toEqual(DEFAULT_PROFILE);
+  });
+});
+
+describe("renderProfileBlock", () => {
+  it("renders the chosen risk and horizon labels", () => {
+    const out = renderProfileBlock({ risk: "aggressive", horizon: "intraday" });
+    expect(out).toContain("Risk appetite: aggressive");
+    expect(out).toContain("Preferred horizon: intraday / day-trade");
+  });
+  it("frames the profile as a preference to validate, not a command", () => {
+    const out = renderProfileBlock({ risk: "balanced", horizon: "swing" }).toLowerCase();
+    expect(out).toContain("preference");
+    expect(out).toContain("stay out");
+  });
+  it("falls back to defaults for an unknown field value", () => {
+    const out = renderProfileBlock({ risk: "yolo" as RiskAppetite, horizon: "swing" });
+    expect(out).toContain("Risk appetite: balanced");
   });
 });
 
 describe("buildClipboardPayload", () => {
-  it("is the prompt, a blank line, then the briefing", () => {
+  it("is the base prompt, the profile block, then the briefing", () => {
     const input = full();
-    expect(buildClipboardPayload(input)).toBe(`${EXPORT_PROMPT}\n\n${assembleBriefing(input)}`);
+    const profile = { risk: "balanced", horizon: "swing" } as const;
+    expect(buildClipboardPayload(input, { basePrompt: "BASE", profile })).toBe(
+      `BASE\n\n${renderProfileBlock(profile)}\n\n${assembleBriefing(input)}`,
+    );
   });
 });

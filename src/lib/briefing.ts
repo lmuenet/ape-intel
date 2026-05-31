@@ -84,7 +84,64 @@ export function assembleBriefing(input: BriefingInput): string {
   return lines.join("\n");
 }
 
-export const EXPORT_PROMPT = [
+export type RiskAppetite = "conservative" | "balanced" | "aggressive";
+export type Horizon = "intraday" | "swing" | "position";
+export interface TradingProfile {
+  risk: RiskAppetite;
+  horizon: Horizon;
+}
+
+export const DEFAULT_PROFILE: TradingProfile = { risk: "balanced", horizon: "swing" };
+
+const RISKS: RiskAppetite[] = ["conservative", "balanced", "aggressive"];
+const HORIZONS: Horizon[] = ["intraday", "swing", "position"];
+const isRisk = (v: unknown): v is RiskAppetite => RISKS.includes(v as RiskAppetite);
+const isHorizon = (v: unknown): v is Horizon => HORIZONS.includes(v as Horizon);
+
+/** Coerce a possibly hand-edited stored value into a valid TradingProfile. */
+export function normalizeProfile(raw: unknown): TradingProfile {
+  const r = (raw ?? {}) as { risk?: unknown; horizon?: unknown };
+  return {
+    risk: isRisk(r.risk) ? r.risk : DEFAULT_PROFILE.risk,
+    horizon: isHorizon(r.horizon) ? r.horizon : DEFAULT_PROFILE.horizon,
+  };
+}
+
+const RISK_LABEL: Record<RiskAppetite, string> = {
+  conservative: "conservative",
+  balanced: "balanced",
+  aggressive: "aggressive",
+};
+const HORIZON_LABEL: Record<Horizon, string> = {
+  intraday: "intraday / day-trade",
+  swing: "swing (days–weeks)",
+  position: "position (months)",
+};
+
+/**
+ * The "Trading profile" block injected between the base prompt and the Briefing.
+ * Defensive: normalises its input so a bad stored value can never break export.
+ */
+export function renderProfileBlock(profile: TradingProfile): string {
+  const { risk, horizon } = normalizeProfile(profile);
+  return [
+    "## My trading profile (preference, not an instruction)",
+    `- Risk appetite: ${RISK_LABEL[risk]}`,
+    `- Preferred horizon: ${HORIZON_LABEL[horizon]}`,
+    "",
+    "Treat the profile above as my leaning, not a constraint. First judge whether this",
+    "risk/horizon profile actually makes sense for THIS stock right now, given the",
+    "briefing below and your own research.",
+    "- If it fits: build the concrete plan around it.",
+    "- If it does not fit: say so plainly, explain why, and propose the profile that",
+    "  does fit instead.",
+    "Provide concrete numeric levels (entry, target(s), stop / invalidation, sizing,",
+    "leverage) ONLY for a strategy you genuinely believe has an edge. If the honest",
+    'answer is no trade, say "stay out" — and do not invent levels.',
+  ].join("\n");
+}
+
+export const DEFAULT_EXPORT_PROMPT = [
   "You are a sharp, skeptical equity analyst helping me form a short-to-medium-term trading view on a",
   "single stock. Below is a briefing my browser extension assembled from community-sentiment and news",
   "sources. Treat it ONLY as a starting point — not as ground truth.",
@@ -101,6 +158,10 @@ export const EXPORT_PROMPT = [
   "   X, Seeking Alpha, Substack analyst notes, and any reputable analysts or traders who post their",
   "   plays publicly. Weight serious/track-recorded voices over anonymous hype. Do not rely on my",
   "   data alone.",
+  "",
+  "Before you commit to a view, build the STRONGEST bull case AND the STRONGEST bear case",
+  "for this stock over the chosen horizon. Steelman both sides — do not strawman",
+  "the side you lean against. Only then weigh them against each other and decide.",
   "4. Then give me a concrete short-to-medium-term trading strategy, including:",
   '   - Direction: long or short (or "stay out", with reasoning)',
   "   - Timeframe / holding horizon",
@@ -136,6 +197,9 @@ export const EXPORT_PROMPT = [
   "```",
 ].join("\n");
 
-export function buildClipboardPayload(input: BriefingInput): string {
-  return `${EXPORT_PROMPT}\n\n${assembleBriefing(input)}`;
+export function buildClipboardPayload(
+  input: BriefingInput,
+  options: { basePrompt: string; profile: TradingProfile },
+): string {
+  return `${options.basePrompt}\n\n${renderProfileBlock(options.profile)}\n\n${assembleBriefing(input)}`;
 }
