@@ -3,7 +3,7 @@
   right: 16px;
   /* clears the ~80px-tall Badge (bottom:16px) so the always-on-top Badge no
      longer overlaps the panel's lower edge — see ADR-0009. */
-  bottom: 116px;
+  bottom: 124px;
   z-index: 2147483646;
   width: 360px;
   max-height: 70vh;
