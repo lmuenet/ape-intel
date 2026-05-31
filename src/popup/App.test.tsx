@@ -33,6 +33,13 @@ describe("<App />", () => {
     expect(getByText("Favourites")).toBeTruthy();
   });
 
+  it("wraps both sections in a single columns container", () => {
+    const { container } = render(<App send={vi.fn().mockReturnValue(pending())} />);
+    const cols = container.querySelector(".ape-popup__cols");
+    expect(cols).toBeTruthy();
+    expect(cols?.querySelectorAll(".ape-popup__section").length).toBe(2);
+  });
+
   it("shows a loading state in each section before data arrives", () => {
     const { getAllByText } = render(<App send={vi.fn().mockReturnValue(pending())} />);
     expect(getAllByText(/loading/i).length).toBe(2);

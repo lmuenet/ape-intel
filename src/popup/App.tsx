@@ -173,6 +173,7 @@ export function App({
     <div class="ape-popup">
       <header class="ape-popup__brand">Ape Intel</header>
 
+      <div class="ape-popup__cols">
       <section class="ape-popup__section">
         <h2 class="ape-popup__title">Trending</h2>
         <ChallengePanel
@@ -205,6 +206,7 @@ export function App({
           )}
         </Section>
       </section>
+      </div>
     </div>
   );
 }

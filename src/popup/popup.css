@@ -7,6 +7,30 @@
   font: 13px/1.45 system-ui, sans-serif;
   background: #15171c;
   color: #f3f3f3;
+  /* drives the single-vs-two-column choice purely by available width, so the
+     same board App is single-column in the narrow toolbar popup and two-column
+     in the wide in-page modal (see ADR-0009). */
+  container-type: inline-size;
+}
+
+/* Sections stack by default (narrow popup); side by side when the board is wide
+   (in-page centered modal). The threshold sits comfortably above the 380px popup
+   so the popup never goes two-column. */
+.ape-popup__cols {
+  display: block;
+}
+
+@container (min-width: 760px) {
+  .ape-popup__cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  /* the stacked-margin rule must not push the right column down in grid */
+  .ape-popup__cols .ape-popup__section + .ape-popup__section {
+    margin-top: 0;
+  }
 }
 
 .ape-popup__brand {
