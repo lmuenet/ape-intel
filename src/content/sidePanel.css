@@ -1,7 +1,9 @@
 .ape-intel-panel {
   position: fixed;
   right: 16px;
-  bottom: 92px;
+  /* clears the ~80px-tall Badge (bottom:16px) so the always-on-top Badge no
+     longer overlaps the panel's lower edge — see ADR-0009. */
+  bottom: 116px;
   z-index: 2147483646;
   width: 360px;
   max-height: 70vh;
