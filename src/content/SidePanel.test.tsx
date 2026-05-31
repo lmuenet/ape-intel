@@ -49,6 +49,8 @@ const defaults = {
   showCapHint: false,
   onToggleFavourite: () => {},
   history: [] as import("../lib/snapshot-history").DailySnapshot[] | null | undefined,
+  onRefresh: () => {},
+  refreshDisabledUntil: null as number | null,
 };
 
 describe("<SidePanel />", () => {
@@ -184,6 +186,35 @@ describe("<SidePanel />", () => {
     const { container } = render(<SidePanel {...defaults} onToggleFavourite={onToggleFavourite} />);
     fireEvent.click(container.querySelector(".ape-intel-panel__star")!);
     expect(onToggleFavourite).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders a refresh button when the ticker is resolved", () => {
+    const { container } = render(<SidePanel {...defaults} />);
+    expect(container.querySelector(".ape-intel-panel__refresh")).toBeTruthy();
+  });
+
+  it("hides the refresh button when the ticker is unresolved", () => {
+    const { container } = render(<SidePanel {...defaults} ticker={null} />);
+    expect(container.querySelector(".ape-intel-panel__refresh")).toBeNull();
+  });
+
+  it("invokes onRefresh when the refresh button is clicked", () => {
+    const onRefresh = vi.fn();
+    const { container } = render(<SidePanel {...defaults} onRefresh={onRefresh} />);
+    fireEvent.click(container.querySelector(".ape-intel-panel__refresh")!);
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables the refresh button while on cooldown", () => {
+    const { container } = render(<SidePanel {...defaults} refreshDisabledUntil={Date.now() + 60_000} />);
+    const btn = container.querySelector(".ape-intel-panel__refresh") as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.getAttribute("title")).toMatch(/min|refresh/i);
+  });
+
+  it("enables the refresh button when there is no cooldown", () => {
+    const { container } = render(<SidePanel {...defaults} refreshDisabledUntil={null} />);
+    expect((container.querySelector(".ape-intel-panel__refresh") as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("shows a cap hint when showCapHint is true", () => {

@@ -35,6 +35,17 @@ export interface SidePanelProps {
   coverage: Coverage;
   onClose: () => void;
   onTradingViewClick: () => void;
+  onRefresh: () => void;
+  /** Epoch ms until which manual refresh is on cooldown, or null if available. */
+  refreshDisabledUntil: number | null;
+}
+
+function refreshTitle(disabledUntil: number | null): string {
+  if (disabledUntil === null) return "Refresh data for this asset";
+  const remainingMs = disabledUntil - Date.now();
+  if (remainingMs <= 0) return "Refresh data for this asset";
+  const mins = Math.ceil(remainingMs / 60_000);
+  return `Refresh available in ~${mins} min`;
 }
 
 function bullishRatio(bullish: number, bearish: number): string {
@@ -134,7 +145,7 @@ export function SidePanel({
   news, earnings, finnhubKey, onSaveKey,
   isFavourite, showCapHint, onToggleFavourite, history, copyState, onCopyBriefing,
   strategy, parseError, onSaveStrategy, onClearStrategy, coverage,
-  onClose, onTradingViewClick,
+  onClose, onTradingViewClick, onRefresh, refreshDisabledUntil,
 }: SidePanelProps) {
   if (!isOpen) return null;
 
@@ -143,6 +154,18 @@ export function SidePanel({
       <header class="ape-intel-panel__header">
         <h2 class="ape-intel-panel__title">{ticker ?? "Resolving ticker…"}</h2>
         <div class="ape-intel-panel__header-actions">
+          {ticker ? (
+            <button
+              type="button"
+              class="ape-intel-panel__refresh"
+              aria-label="Refresh data for this asset"
+              title={refreshTitle(refreshDisabledUntil)}
+              disabled={refreshDisabledUntil !== null && Date.now() < refreshDisabledUntil}
+              onClick={onRefresh}
+            >
+              ↻
+            </button>
+          ) : null}
           {ticker ? (
             <button
               type="button"
