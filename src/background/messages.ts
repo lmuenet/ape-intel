@@ -9,22 +9,22 @@ import type { TrendingRow } from "./apewisdom-service";
 import type { FavouriteRow } from "./favourites-board";
 
 export interface TickerLookupMessage { type: "ticker:lookup"; isin: string }
-export interface ApewisdomLookupMessage { type: "apewisdom:lookup"; ticker: string }
+export interface ApewisdomLookupMessage { type: "apewisdom:lookup"; ticker: string; force?: boolean }
 export interface TradestieLookupMessage { type: "tradestie:lookup"; ticker: string }
-export interface StockTwitsLookupMessage { type: "stocktwits:lookup"; ticker: string }
-export interface FinnhubNewsLookupMessage { type: "finnhub:news"; ticker: string }
-export interface FinnhubEarningsLookupMessage { type: "finnhub:earnings"; ticker: string }
+export interface StockTwitsLookupMessage { type: "stocktwits:lookup"; ticker: string; force?: boolean }
+export interface FinnhubNewsLookupMessage { type: "finnhub:news"; ticker: string; force?: boolean }
+export interface FinnhubEarningsLookupMessage { type: "finnhub:earnings"; ticker: string; force?: boolean }
 export interface FavouriteToggleMessage { type: "favourites:toggle"; isin: string; ticker: string }
 export interface FavouriteHasMessage { type: "favourites:has"; isin: string }
 export interface SnapshotHistoryMessage { type: "snapshot:history"; isin: string }
 export interface TrendingBoardMessage { type: "trending:board" }
 export interface FavouritesBoardMessage { type: "favourites:board" }
 
-export type ApewisdomLookup = (ticker: string) => Promise<ApewisdomEntry | null>;
+export type ApewisdomLookup = (ticker: string, force?: boolean) => Promise<ApewisdomEntry | null>;
 export type TradestieLookup = (ticker: string) => Promise<TradestieEntry | null>;
-export type StockTwitsLookup = (ticker: string) => Promise<StockTwitsEntry | null>;
-export type FinnhubNewsLookup = (ticker: string) => Promise<NewsItem[] | null>;
-export type FinnhubEarningsLookup = (ticker: string) => Promise<EarningsDate | null>;
+export type StockTwitsLookup = (ticker: string, force?: boolean) => Promise<StockTwitsEntry | null>;
+export type FinnhubNewsLookup = (ticker: string, force?: boolean) => Promise<NewsItem[] | null>;
+export type FinnhubEarningsLookup = (ticker: string, force?: boolean) => Promise<EarningsDate | null>;
 export type FavouriteToggle = (fav: Favourite) => Promise<boolean>;
 export type FavouriteHas = (isin: string) => Promise<boolean>;
 export type SnapshotHistoryLookup = (isin: string) => Promise<DailySnapshot[]>;
@@ -108,11 +108,11 @@ export function handleMessage(
   | Promise<FavouriteRow[]>
   | undefined {
   if (isTickerLookup(message)) return handlers.fetchTicker(message.isin);
-  if (isTypedTickerMessage(message, "apewisdom:lookup")) return handlers.lookupApewisdom(message.ticker);
+  if (isTypedTickerMessage(message, "apewisdom:lookup")) return handlers.lookupApewisdom(message.ticker, (message as ApewisdomLookupMessage).force);
   if (isTypedTickerMessage(message, "tradestie:lookup")) return handlers.lookupTradestie(message.ticker);
-  if (isTypedTickerMessage(message, "stocktwits:lookup")) return handlers.lookupStockTwits(message.ticker);
-  if (isTypedTickerMessage(message, "finnhub:news")) return handlers.lookupFinnhubNews(message.ticker);
-  if (isTypedTickerMessage(message, "finnhub:earnings")) return handlers.lookupFinnhubEarnings(message.ticker);
+  if (isTypedTickerMessage(message, "stocktwits:lookup")) return handlers.lookupStockTwits(message.ticker, (message as StockTwitsLookupMessage).force);
+  if (isTypedTickerMessage(message, "finnhub:news")) return handlers.lookupFinnhubNews(message.ticker, (message as FinnhubNewsLookupMessage).force);
+  if (isTypedTickerMessage(message, "finnhub:earnings")) return handlers.lookupFinnhubEarnings(message.ticker, (message as FinnhubEarningsLookupMessage).force);
   if (isFavouriteToggle(message)) return handlers.toggleFavourite({ isin: message.isin, ticker: message.ticker });
   if (isTypedIsinMessage(message, "favourites:has")) return handlers.isFavourite(message.isin);
   if (isTypedIsinMessage(message, "snapshot:history")) return handlers.getSnapshotHistory(message.isin);

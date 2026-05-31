@@ -71,7 +71,7 @@ describe("handleMessage", () => {
     await expect(
       handleMessage({ type: "finnhub:news", ticker: "AAPL" }, handlers({ lookupFinnhubNews })),
     ).resolves.toBe(items);
-    expect(lookupFinnhubNews).toHaveBeenCalledWith("AAPL");
+    expect(lookupFinnhubNews).toHaveBeenCalledWith("AAPL", undefined);
   });
 
   it("routes finnhub:earnings", async () => {
@@ -80,7 +80,25 @@ describe("handleMessage", () => {
     await expect(
       handleMessage({ type: "finnhub:earnings", ticker: "AAPL" }, handlers({ lookupFinnhubEarnings })),
     ).resolves.toBe(date);
-    expect(lookupFinnhubEarnings).toHaveBeenCalledWith("AAPL");
+    expect(lookupFinnhubEarnings).toHaveBeenCalledWith("AAPL", undefined);
+  });
+
+  it("threads force through the four per-asset lookups", async () => {
+    const lookupApewisdom = vi.fn().mockResolvedValue(null);
+    const lookupStockTwits = vi.fn().mockResolvedValue(null);
+    const lookupFinnhubNews = vi.fn().mockResolvedValue(null);
+    const lookupFinnhubEarnings = vi.fn().mockResolvedValue(null);
+    const h = handlers({ lookupApewisdom, lookupStockTwits, lookupFinnhubNews, lookupFinnhubEarnings });
+
+    await handleMessage({ type: "apewisdom:lookup", ticker: "AAPL", force: true }, h);
+    await handleMessage({ type: "stocktwits:lookup", ticker: "AAPL", force: true }, h);
+    await handleMessage({ type: "finnhub:news", ticker: "AAPL", force: true }, h);
+    await handleMessage({ type: "finnhub:earnings", ticker: "AAPL", force: true }, h);
+
+    expect(lookupApewisdom).toHaveBeenCalledWith("AAPL", true);
+    expect(lookupStockTwits).toHaveBeenCalledWith("AAPL", true);
+    expect(lookupFinnhubNews).toHaveBeenCalledWith("AAPL", true);
+    expect(lookupFinnhubEarnings).toHaveBeenCalledWith("AAPL", true);
   });
 
   it("routes favourites:toggle with isin and ticker", async () => {

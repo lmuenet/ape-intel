@@ -19,7 +19,7 @@ export interface TrendingRow {
 const DEFAULT_BOARD_LIMIT = 15;
 
 export interface ApewisdomService {
-  lookup(ticker: string): Promise<ApewisdomEntry | null>;
+  lookup(ticker: string, force?: boolean): Promise<ApewisdomEntry | null>;
   board(limit?: number): Promise<TrendingRow[]>;
 }
 
@@ -38,8 +38,10 @@ export function createApewisdomService(
   );
 
   return {
-    async lookup(ticker: string): Promise<ApewisdomEntry | null> {
-      const serialised = await cache.get(SNAPSHOT_KEY);
+    async lookup(ticker: string, force?: boolean): Promise<ApewisdomEntry | null> {
+      // Apewisdom is one shared snapshot; a forced lookup refetches the whole
+      // snapshot (TTL bypass), which also refreshes every other ticker — fine.
+      const serialised = await cache.get(SNAPSHOT_KEY, { force });
       const map = new Map(serialised.entries);
       return map.get(ticker) ?? null;
     },

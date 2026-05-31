@@ -31,6 +31,18 @@ describe("createFinnhubService", () => {
     expect(newsFetcher).toHaveBeenCalledWith("AAPL", "KEY");
   });
 
+  it("refetches news within the ttl when forced", async () => {
+    const store = createInMemoryKvStore({ "finnhub:apiKey": "KEY" });
+    const newsFetcher = vi
+      .fn()
+      .mockResolvedValueOnce([newsItem("u1")])
+      .mockResolvedValueOnce([newsItem("u2")]);
+    const service = createFinnhubService(store, newsFetcher, vi.fn());
+    expect(await service.news("AAPL")).toEqual([newsItem("u1")]);
+    expect(await service.news("AAPL", true)).toEqual([newsItem("u2")]);
+    expect(newsFetcher).toHaveBeenCalledTimes(2);
+  });
+
   it("caches earnings separately per ticker", async () => {
     const store = createInMemoryKvStore({ "finnhub:apiKey": "KEY" });
     const earningsFetcher = vi.fn(async () => ({ date: "2026-02-01", epsEstimate: 1 }));

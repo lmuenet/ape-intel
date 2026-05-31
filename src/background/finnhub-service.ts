@@ -10,8 +10,8 @@ export type NewsFetcher = (ticker: string, apiKey: string) => Promise<NewsItem[]
 export type EarningsFetcher = (ticker: string, apiKey: string) => Promise<EarningsDate | null>;
 
 export interface FinnhubService {
-  news(ticker: string): Promise<NewsItem[] | null>;
-  earnings(ticker: string): Promise<EarningsDate | null>;
+  news(ticker: string, force?: boolean): Promise<NewsItem[] | null>;
+  earnings(ticker: string, force?: boolean): Promise<EarningsDate | null>;
 }
 
 export function createFinnhubService(
@@ -42,13 +42,13 @@ export function createFinnhubService(
   return {
     // Gate on the key BEFORE the cache so a missing key is never cached
     // (otherwise a null would be served for the whole TTL after the key is added).
-    async news(ticker: string): Promise<NewsItem[] | null> {
+    async news(ticker: string, force?: boolean): Promise<NewsItem[] | null> {
       if (!(await store.get<string>(KEY_NAME))) return null;
-      return newsCache.get(ticker);
+      return newsCache.get(ticker, { force });
     },
-    async earnings(ticker: string): Promise<EarningsDate | null> {
+    async earnings(ticker: string, force?: boolean): Promise<EarningsDate | null> {
       if (!(await store.get<string>(KEY_NAME))) return null;
-      return earningsCache.get(ticker);
+      return earningsCache.get(ticker, { force });
     },
   };
 }

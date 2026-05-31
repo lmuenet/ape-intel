@@ -48,6 +48,19 @@ describe("createApewisdomService", () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
+  it("refetches the snapshot when a lookup is forced", async () => {
+    const store = createInMemoryKvStore();
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(new Map([["AAPL", entry(5)]]))
+      .mockResolvedValueOnce(new Map([["AAPL", entry(2)]]));
+    const service = createApewisdomService(store, fetcher);
+
+    expect(await service.lookup("AAPL")).toEqual(entry(5));
+    expect(await service.lookup("AAPL", true)).toEqual(entry(2));
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
   describe("board", () => {
     it("returns rows sorted by rank ascending, with the ticker attached", async () => {
       const store = createInMemoryKvStore();

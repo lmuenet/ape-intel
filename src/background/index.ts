@@ -32,11 +32,11 @@ const finnhub = createFinnhubService(
 browser.runtime.onMessage.addListener((message) =>
   handleMessage(message, {
     fetchTicker: (isin) => fetchTickerFromOpenFigi(isin, fetch),
-    lookupApewisdom: (ticker) => apewisdom.lookup(ticker),
+    lookupApewisdom: (ticker, force) => apewisdom.lookup(ticker, force),
     lookupTradestie: (ticker) => tradestie.lookup(ticker),
-    lookupStockTwits: (ticker) => stocktwits.lookup(ticker),
-    lookupFinnhubNews: (ticker) => finnhub.news(ticker),
-    lookupFinnhubEarnings: (ticker) => finnhub.earnings(ticker),
+    lookupStockTwits: (ticker, force) => stocktwits.lookup(ticker, force),
+    lookupFinnhubNews: (ticker, force) => finnhub.news(ticker, force),
+    lookupFinnhubEarnings: (ticker, force) => finnhub.earnings(ticker, force),
     toggleFavourite: (fav) => favourites.toggle(fav),
     isFavourite: (isin) => favourites.has(isin),
     getSnapshotHistory: (isin) => snapshot.history(isin),

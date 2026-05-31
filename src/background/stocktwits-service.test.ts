@@ -36,6 +36,15 @@ describe("createStockTwitsService", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
+  it("refetches within the ttl when forced", async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(entry(8, 2)).mockResolvedValueOnce(entry(1, 9));
+    const service = createStockTwitsService(createInMemoryKvStore(), fetcher);
+
+    expect(await service.lookup("AAPL")).toEqual(entry(8, 2));
+    expect(await service.lookup("AAPL", true)).toEqual(entry(1, 9));
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
   it("returns null and caches null", async () => {
     const fetcher = vi.fn().mockResolvedValue(null);
     const service = createStockTwitsService(createInMemoryKvStore(), fetcher);
