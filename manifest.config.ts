@@ -10,6 +10,10 @@ export default defineManifest({
     default_title: "Ape Intel — Trending",
     default_popup: "src/popup/index.html",
   },
+  options_ui: {
+    page: "src/options/index.html",
+    open_in_tab: true,
+  },
   browser_specific_settings: {
     gecko: {
       id: "ape-intel@lmueller.dev",
