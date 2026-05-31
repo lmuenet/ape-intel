@@ -56,6 +56,14 @@ No telemetry, no analytics, no error reporting. The only outbound calls are to t
 listed data sources and — only if you paste it yourself — your chosen LLM. The
 Finnhub key is stored locally (`browser.storage.local`).
 
+## Install
+
+Download the signed `.xpi` from the
+[latest release](https://github.com/lmuenet/ape-intel/releases/latest) and open it
+in Firefox — drag it onto a Firefox window, or **about:addons** → gear menu →
+**Install Add-on From File…**. The build is signed by Mozilla (AMO,
+self-distributed / unlisted), so it installs permanently on standard Firefox.
+
 ## Tech stack
 
 - Firefox WebExtension (Manifest V3)

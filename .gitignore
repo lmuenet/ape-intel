@@ -6,3 +6,5 @@ dist/
 .env
 .env.*
 *.zip
+*.xpi
+web-ext-artifacts/
