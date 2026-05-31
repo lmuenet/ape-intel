@@ -277,8 +277,20 @@
   flex-direction: column;
   gap: 2px;
   font-size: 11px;
+  color: #888;
 }
 .ape-intel-briefing__knob select {
   font: inherit;
   padding: 2px 4px;
+  border-radius: 6px;
+  border: 1px solid #2a2a2a;
+  background: #1a1a1a;
+  color: #f3f3f3;
+}
+.ape-intel-briefing__knob select:hover {
+  border-color: #4ade80;
+}
+.ape-intel-briefing__knob option {
+  background: #1a1a1a;
+  color: #f3f3f3;
 }
