@@ -12,6 +12,8 @@ import { aggregate as computeAggregate } from "../lib/barometer";
 import { classifyCoverage, type Coverage } from "../lib/coverage";
 import { buildClipboardPayload } from "../lib/briefing";
 import { parseStrategy, type StoredStrategy } from "../lib/strategy";
+import { createLogger, resolveLevel, LOG_LEVEL_KEY, type LogLevel } from "../lib/logger";
+import type { LogMessage } from "../background/messages";
 import type { Aggregate } from "../lib/barometer";
 import type { EarningsDate, NewsItem } from "../lib/finnhub";
 import type { DailySnapshot } from "../lib/snapshot-history";
@@ -37,6 +39,22 @@ async function send<T>(message: unknown): Promise<T> {
 }
 
 const store = browserStorageKvStore(browser.storage.local);
+
+// Cached active level, refreshed on change; entries ship to the background-owned
+// ring buffer (fire-and-forget) while the console mirror keeps dev output intact.
+let activeLevel: LogLevel = resolveLevel(undefined, import.meta.env.DEV);
+void store.get<LogLevel>(LOG_LEVEL_KEY).then((lvl) => { activeLevel = resolveLevel(lvl, import.meta.env.DEV); });
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes[LOG_LEVEL_KEY]) {
+    activeLevel = resolveLevel(changes[LOG_LEVEL_KEY].newValue as LogLevel | undefined, import.meta.env.DEV);
+  }
+});
+const log = createLogger({
+  context: "content",
+  getLevel: () => activeLevel,
+  ship: (entry) => { browser.runtime.sendMessage({ type: "log", entry } satisfies LogMessage).catch(() => {}); },
+});
+
 const tickerCache = createTickerCache(
   store,
   (isin) => send<string | null>({ type: "ticker:lookup", isin } satisfies TickerLookupMessage),
@@ -152,11 +170,11 @@ function paint(): void {
 function dispatchSentimentLookups(ticker: string, gen: number, force = false): void {
   send<ApewisdomEntry | null>({ type: "apewisdom:lookup", ticker, force } satisfies ApewisdomLookupMessage).then(
     (entry) => { if (gen === generation) { currentApewisdom = entry; paint(); } },
-    (e) => { if (gen === generation) { console.warn("[ape-intel] apewisdom lookup failed", e); currentApewisdom = null; paint(); } },
+    (e) => { if (gen === generation) { log.warn("apewisdom lookup failed", e); currentApewisdom = null; paint(); } },
   );
   send<StockTwitsEntry | null>({ type: "stocktwits:lookup", ticker, force } satisfies StockTwitsLookupMessage).then(
     (entry) => { if (gen === generation) { currentStockTwits = entry; paint(); } },
-    (e) => { if (gen === generation) { console.warn("[ape-intel] stocktwits lookup failed", e); currentStockTwits = null; paint(); } },
+    (e) => { if (gen === generation) { log.warn("stocktwits lookup failed", e); currentStockTwits = null; paint(); } },
   );
 }
 
@@ -166,11 +184,11 @@ function dispatchFinnhubLookups(ticker: string, gen: number, force = false): voi
   paint();
   send<NewsItem[] | null>({ type: "finnhub:news", ticker, force } satisfies FinnhubNewsLookupMessage).then(
     (items) => { if (gen === generation) { currentNews = items; paint(); } },
-    (e) => { if (gen === generation) { console.warn("[ape-intel] finnhub news lookup failed", e); currentNews = null; paint(); } },
+    (e) => { if (gen === generation) { log.warn("finnhub news lookup failed", e); currentNews = null; paint(); } },
   );
   send<EarningsDate | null>({ type: "finnhub:earnings", ticker, force } satisfies FinnhubEarningsLookupMessage).then(
     (date) => { if (gen === generation) { currentEarnings = date; paint(); } },
-    (e) => { if (gen === generation) { console.warn("[ape-intel] finnhub earnings lookup failed", e); currentEarnings = null; paint(); } },
+    (e) => { if (gen === generation) { log.warn("finnhub earnings lookup failed", e); currentEarnings = null; paint(); } },
   );
 }
 
@@ -179,7 +197,7 @@ function dispatchHistoryLookup(isin: string, gen: number): void {
   paint();
   send<DailySnapshot[]>({ type: "snapshot:history", isin } satisfies SnapshotHistoryMessage).then(
     (history) => { if (gen === generation) { currentHistory = history; paint(); } },
-    (e) => { if (gen === generation) { console.warn("[ape-intel] snapshot history lookup failed", e); currentHistory = null; paint(); } },
+    (e) => { if (gen === generation) { log.warn("snapshot history lookup failed", e); currentHistory = null; paint(); } },
   );
 }
 
@@ -205,7 +223,7 @@ function onCopyBriefing(): void {
   });
   navigator.clipboard.writeText(payload).then(
     () => { copyState = "copied"; paint(); },
-    (e) => { console.warn("[ape-intel] clipboard write failed", e); copyState = "error"; paint(); },
+    (e) => { log.warn("clipboard write failed", e); copyState = "error"; paint(); },
   );
 }
 
@@ -225,7 +243,7 @@ function onSaveStrategy(raw: string): void {
   paint();
   store.set(`${STRATEGY_PREFIX}${isin}`, record).then(
     () => {},
-    (e) => { if (gen === generation) console.warn("[ape-intel] strategy save failed", e); },
+    (e) => { if (gen === generation) log.warn("strategy save failed", e); },
   );
 }
 
@@ -269,7 +287,7 @@ function onRefresh(): void {
   scheduleRefreshReenable();
   store.set(`${REFRESH_PREFIX}${isin}`, now).then(
     () => {},
-    (e) => { if (gen === generation) console.warn("[ape-intel] refresh timestamp save failed", e); },
+    (e) => { if (gen === generation) log.warn("refresh timestamp save failed", e); },
   );
   paint();
 }
@@ -290,7 +308,7 @@ function onToggleFavourite(): void {
       if (!wasFavourite && !nowFavourite) showCapHint = true;
       paint();
     },
-    (e) => { if (gen === generation) console.warn("[ape-intel] favourites toggle failed", e); },
+    (e) => { if (gen === generation) log.warn("favourites toggle failed", e); },
   );
 }
 
@@ -338,7 +356,7 @@ observeIsin(window, (isin) => {
         dispatchSentimentLookups(ticker, gen);
         send<boolean>({ type: "favourites:has", isin } satisfies FavouriteHasMessage).then(
           (fav) => { if (gen === generation) { isFavourite = fav; paint(); if (fav) dispatchHistoryLookup(isin, gen); } },
-          (e) => { if (gen === generation) console.warn("[ape-intel] favourites has failed", e); },
+          (e) => { if (gen === generation) log.warn("favourites has failed", e); },
         );
         store.get<string>(FINNHUB_KEY).then((key) => {
           if (gen !== generation) return;
@@ -362,7 +380,7 @@ observeIsin(window, (isin) => {
     },
     (e) => {
       if (gen !== generation) return;
-      console.warn("[ape-intel] ticker lookup failed", e);
+      log.warn("ticker lookup failed", e);
       currentTicker = null;
       currentApewisdom = null;
       currentStockTwits = null;
